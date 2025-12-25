@@ -182,16 +182,52 @@ performance of tabGAP and develop a new, more accurate and efficient MLIP for \g
 
 NEP, developed by Fan \textit{et al.}, consists of an ACE-like descriptor constructed using 
 Chebyshev polynomials and a regression model based on 
-a feedforward neural network \cite{fan_gpumd_2022,song_general-purpose_2024}. 
+a feedforward neural network \cite{fan_neuroevolution_2021,fan_gpumd_2022,song_general-purpose_2024}. 
 Its explicit atomic-environment featurization is carefully designed to strike an excellent 
 balance between prediction accuracy and computational efficiency. 
 Moreover, NEP is natively implemented in the Graphics Processing Units Molecular Dynamics 
 (GPUMD) package, enabling an impressive computational throughput of up to $1\times10^{7}$ 
 atom-steps per second on a single GPU \cite{xu_gpumd_2025}. 
-Considering both its accuracy and performance, NEP stands out as one of the most promising 
+Considering its overall performance, NEP stands out as one of the most promising 
 MLIPs for large-scale simulations of \ga\ under a wide range of physical conditions.
 
 \subsection{Hyperparameters}
+
+In this work, we use the fourth generation of NEP \cite{song_general-purpose_2024} to construct 
+the MLIP for \ga. To faithfully capture the complex potential energy landscape of \ga, 
+we adopt a relatively large parameterization strategy. 
+Specifically, 9 radial descriptors ($r_\text{cutoff}=6\,\text{\AA}$) and 
+42 angular descriptors ($r_\text{cutoff}=4\,\text{\AA}$) are employed, 
+with a single hidden layer containing 100 neurons. 
+The maximum Chebyshev polynomial orders are set to 12 and 10 for the radial and angular 
+descriptors, respectively. 
+In addition, 4-body and 5-body angular terms are included as described in Ref.~\cite{fan_gpumd_2022}. 
+In total, the resulting model contains 11,377 trainable parameters. 
+We also tested larger parameter settings; however, they did not provide noticeable improvements 
+in accuracy while causing a substantial increase in computational cost.
+
+A robust training-weighting scheme is employed to balance the accuracy across distinct atomic 
+environments, which is essential for achieving successful training over an extremely wide range 
+of average atomic energies, spanning from the most stable $\beta$-phase to highly unstable, nonstoichiometric 
+amorphous states under high pressure. 
+Our weighting strategy consists of two components.
+First, we adopt the phase-dependent scaling scheme proposed in Ref.~\cite{zhao_complex_2023}, 
+which enhances the descriptive capability of the model for key \ga\ phases, including its 
+metastable crystalline structures.
+Second, we further rescale the training weights of all configurations according to their 
+average potential energy per atom, ensuring that the NEP model primarily focuses on low-energy 
+configurations while still retaining reasonable descriptive capability for high-energy states.
+The rescaling factor $\mathcal{F}$ is defined as
+\begin{equation}
+\label{eq:rescaling}
+\mathcal{F} = \frac{1}{\left|e_i - e_{\beta\,\text{phase}}\right|^{\alpha} + 1},
+\end{equation}
+where $e_i$ is the average potential energy per atom of the $i$th configuration, $e_{\beta\,\text{phase}}$ 
+is that of the $\beta$ phase, and $\alpha$ is a small constant controlling the strength of the rescaling.
+The average energy, atomic forces, and virial of each training configuration are used as training targets, 
+with global weights of $\lambda_e=\lambda_f=\lambda_v=1$, following Ref.~\cite{liang_nep89_2025}. 
+Both $\mathcal{L}_1$ and $\mathcal{L}_2$ regularizations are applied with $\lambda_1=\lambda_2=0.05$ to 
+avoid overfitting \cite{fan_gpumd_2022}.
 
 \subsection{Datasets}
 
