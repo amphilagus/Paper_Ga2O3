@@ -41,6 +41,7 @@
 ]{revtex4-2}
 
 \usepackage{graphicx}% Include figure files
+\graphicspath{{figures/}}
 \usepackage{dcolumn}% Align table columns on decimal point
 \usepackage{bm}% bold math
 \usepackage[english]{babel}
@@ -59,8 +60,10 @@
 %%height=10in,a5paper,hmargin={3cm,0.8in},
 %]{geometry}
 
-\newcommand{\pcc}{\,cm$^{-3}$}	% per cm-cubed
+\newcommand{\pcc}{~cm$^{-3}$}	% per cm-cubed
 \newcommand{\ga}{$\text{Ga}_2\text{O}_3$}
+\newcommand{\meV}{meV/atom}
+\newcommand{\meVA}{meV/$\text{\AA}$}
 
 \begin{document}
 
@@ -219,7 +222,7 @@ q_n^i = \sum_{j \ne i} g_n(r_{ij}),
 and the $n$-th angular descriptor of atom $i$ with angular-momentum index $l$
 is defined as
 \begin{equation}
-q_{n,l}^i = \sum_{j \ne i}\sum_{k \ne i} g_n(r_{ij})\,g_n(r_{ik})\,P_l(\theta_{ijk}),
+q_{n,l}^i = \sum_{j \ne i}\sum_{k \ne i} g_n(r_{ij})~g_n(r_{ik})~P_l(\theta_{ijk}),
 \end{equation}
 where $P_l(\theta_{ijk})$ is the $l$-th-order Legendre polynomial of the angle
 $\theta_{ijk}$ between atoms $i$, $j$, and $k$.
@@ -247,8 +250,8 @@ and $q^i_\nu$ denotes the $\nu$-th descriptor of atom $i$.
 In this work, we use the fourth generation of NEP \cite{song_general-purpose_2024} to construct 
 the MLIP for \ga. To faithfully capture the complex potential energy landscape of \ga, 
 we adopt a relatively large parameterization strategy. 
-Specifically, 9 radial descriptors ($r_\text{cut}=6\,\text{\AA}$) and 
-42 angular descriptors ($r_\text{cut}=4\,\text{\AA}$) are employed, 
+Specifically, 9 radial descriptors ($r_\text{cut}=6~\text{\AA}$) and 
+42 angular descriptors ($r_\text{cut}=4~\text{\AA}$) are employed, 
 with a single hidden layer containing 100 neurons. 
 The maximum Chebyshev polynomial orders are set to 12 and 10 for the radial and angular 
 descriptors, respectively. 
@@ -301,13 +304,13 @@ using exactly the same sampling protocol as for the GAP dataset.
 These newly sampled configurations are found to lie beyond the interpolation capability of tabGAP 
 and are crucial for accurately capturing SHI irradiation-induced phenomena.
 Two types of configurations are added. 
-The first type comprises structures along the energy--volume 
+The first type comprises 60 structures along the energy--volume 
 equation-of-state curve of the $\gamma$ phase. 
 This addition is motivated by the fact that 
 the $\beta \to \gamma$ transition is widely observed in radiation experiments on \ga\ 
 \cite{zhao_crystallization_2025,han_electronic_2025,abdullaev_ions_2025}, 
 yet $\gamma$-phase configurations are underrepresented in the original GAP dataset. 
-The second type consists of configurations sampled from heating--cooling processes 
+The second type consists of 300 configurations sampled from heating--cooling processes 
 of the $\beta$ phase under various pressure and volume conditions,
 because such thermodynamic pathways frequently occur during irradiation.
 Our principle component analysis (PCA) shows that these newly added configurations 
@@ -328,6 +331,81 @@ velocities of the \ga\ lattice for the subsequent MD simulations.
 is controlled using Nose-Hoover chain thermostats, with the coupling parameters calibrated
 as shown in Fig.~S1.
 Further methodological details regarding TREKIS are provided in Appendix~\ref{app:trekis}.
+
+\section{RESULTS AND DISCUSSION}
+
+\subsection{General-purpose MLIP benchmarking}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{comparison_dual_2x3.png}
+\caption{\label{fig_comparison_dual_2x3}
+Detailed comparison of the prediction accuracy of the NEP and tabGAP models.
+Blue and red dots represent NEP and tabGAP results, respectively.
+Panels \textbf{(a)}, \textbf{(c)}, and \textbf{(e)} show the predicted energies, forces,
+and virials of the GAP-dataset configurations with average energies ranging from
+$-5.9$ to $-0.9$~eV/atom.
+Panels \textbf{(b)}, \textbf{(d)}, and \textbf{(f)} present the corresponding results
+for a narrower energy window from $-5.9$ to $-5.4$~eV/atom.
+}
+\end{figure}
+
+A comprehensive comparison of the predictive capabilities of NEP and tabGAP is
+shown in Fig.~\ref{fig_comparison_dual_2x3}. Our NEP model, trained with an
+energy-dependent scaling strategy, exhibits consistently superior performance
+over tabGAP.
+Given the wide energy span of the original GAP dataset, we separately analyze
+(1) configurations with a broad energy range (with average energies up to
+5~eV/atom above that of the $\beta$ phase) and
+(2) relatively stable configurations (with average energies within
+0.5~eV/atom of the $\beta$ phase).
+
+For the wide-range-energy configurations, NEP offers pronounced accuracy
+improvements in predicting energies
+[Fig.~\ref{fig_comparison_dual_2x3}(a)],
+forces
+[Fig.~\ref{fig_comparison_dual_2x3}(c)],
+and virials
+[Fig.~\ref{fig_comparison_dual_2x3}(e)]
+compared with tabGAP.
+Specifically, the mean absolute error (MAE) of the energy predicted by NEP is
+16.4~meV/atom, about one third of that of tabGAP (48.3~meV/atom).
+Moreover, the root mean square error (RMSE) of energy predicted by tabGAP
+reaches 130.2~meV/atom, which is 3.5 times higher than that of NEP
+(37.2~meV/atom), indicating a substantial instability of tabGAP over the wide
+energy range.
+The MAE of force prediction by NEP is 303.6~\meVA, approximately three quarters
+of that of tabGAP (392.7~\meVA), while the MAE of virial prediction is
+71.6~meV for NEP and 170.2~meV for tabGAP.
+The overall MAEs of both models remain relatively large mainly because the dataset
+covers an extremely broad energy space.
+For the relatively stable configurations, both models show significant improvements in
+energy prediction
+[Fig.~\ref{fig_comparison_dual_2x3}(b)],
+whereas the improvements in force
+[Fig.~\ref{fig_comparison_dual_2x3}(d)]
+and virial
+[Fig.~\ref{fig_comparison_dual_2x3}(f)]
+predictions are less pronounced.
+The MAE of energy prediction by NEP is 6.4~meV/atom, about half of that of
+tabGAP (11.8~meV/atom), and NEP still maintains noticeable advantages in force
+and virial predictions.
+
+\begin{figure*}[htbp]
+\centering
+\includegraphics[width=\textwidth]{mae_by_config_type_comparison.png}
+\caption{\label{fig_mae_by_config_type_comparison}
+Comparison of the MAE of \textbf{(a)} energy, \textbf{(b)} force, and \textbf{(c)} virial 
+predictions by NEP and tabGAP for different config types in the GAP dataset.
+}
+\end{figure*}
+
+
+
+
+\subsection{Physical process-oriented training set augmentation}
+
+\subsection{SHI irradiation simulations}
 
 
 \begin{acknowledgments}
@@ -413,13 +491,13 @@ The upper limit of transferred energy in the elastic scattering event is:
 W_{+} = \mathrm{min}(\frac{4Em_{1}m_{2}}{(m_{1}+m_{2})^{2}}, 
 \hbar\omega_{\text{Debye}}) 
 \end{equation} 
-where $\omega_{\text{Debye}}=(6\pi^{2}n_{at})^{\frac{1}{3}}v_{s}$ is the Debye 
-frequency and $v_{s}$ is the speed of sound in \ga. 
+where $\omega_{\text{Debye}}=(6\pi^{2}n_{\text{at}})^{\frac{1}{3}}v_{\text{s}}$ is the Debye 
+frequency and $v_{\text{s}}$ is the speed of sound in \ga. 
  
 Several additional parameters were incorporated into the TREKIS calculations: 
-the speed of sound was set to $5,250\,\mathrm{m/s}$ \cite{wright_acoustic_2025}, the density 
-of \ga\ to $5.88\,\mathrm{g/cm}^3$, and the band gap to 
-$4.9\,\mathrm{eV}$ \cite{zhang_tight-binding_2022}.
+the speed of sound was set to $5,250~\mathrm{m/s}$ \cite{wright_acoustic_2025}, the density 
+of \ga\ to $5.88~\mathrm{g/cm}^3$, and the band gap to 
+$4.9~\mathrm{eV}$ \cite{zhang_tight-binding_2022}.
 
 % The \nocite command causes all entries in a bibliography to be printed out
 % whether or not they are actually referenced in the text. This is appropriate
