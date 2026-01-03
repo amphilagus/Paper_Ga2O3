@@ -372,7 +372,7 @@ Specifically, the mean absolute error (MAE) of the energy predicted by NEP is
 16.4~meV/atom, about one third of that of tabGAP (48.3~meV/atom).
 Moreover, the root mean square error (RMSE) of energy predicted by tabGAP
 reaches 130.2~meV/atom, which is 3.5 times higher than that of NEP
-(37.2~meV/atom), indicating a substantial instability of tabGAP over the wide
+(37.2~meV/atom), indicating a potential instability of tabGAP over the wide
 energy range.
 The MAE of force prediction by NEP is 303.6~\meVA, approximately three quarters
 of that of tabGAP (392.7~\meVA), while the MAE of virial prediction is
@@ -391,6 +391,11 @@ The MAE of energy prediction by NEP is 6.4~meV/atom, about half of that of
 tabGAP (11.8~meV/atom), and NEP still maintains noticeable advantages in force
 and virial predictions.
 
+THIS paragraph will discuss the comparison of computational speed between NEP and tabGAP. 
+We will find out that the NEP dominates the tabGAP in computational speed, which also 
+introudces a question that why NEP brokes the trade-off effect by being 
+superior in both speed and accuracy.
+
 \begin{figure*}[htbp]
 \centering
 \includegraphics[width=\textwidth]{mae_by_config_type_comparison.png}
@@ -400,8 +405,74 @@ predictions by NEP and tabGAP for different config types in the GAP dataset.
 }
 \end{figure*}
 
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{energy_mae_comparison.png}
+\caption{\label{fig_energy_mae_comparison}
+\textbf{(a)} Illustration of the energy-dependent rescaling strategy, where the black curve
+represents the rescaling factor as a function of the average potential energy.
+All samples in the GAP dataset are shown as dots colored according to their configuration
+types; their positions along the horizontal axis indicate their average potential energies.
+\textbf{(b)} Comparison of the energy-prediction performance of tabGAP, NEP with
+energy-dependent rescaling, and NEP without energy-dependent rescaling over different
+energy ranges.
+}
+\end{figure}
 
+To clarify this ``pseudo-paradox'', we thoroughly compared the prediction errors of NEP and
+tabGAP over all 22 configuration types in the GAP dataset
+[Fig.~\ref{fig_mae_by_config_type_comparison}].
+We find that the energy MAE of tabGAP exhibits strong fluctuations among different configuration
+types, with some types showing very small errors below 3~meV/atom (e.g., $\beta$ phase,
+$\delta$ phase, hex$^{*}$ phase, and $\text{GaO}_3$), while others display much larger errors
+exceeding 50~meV/atom (e.g., dimers, trimers, O clusters, and various nonstoichiometric
+structures).
+This fluctuation is a direct consequence of the configuration-type weighting strategy adopted
+in tabGAP, which assigns higher weights to crystalline phases of \ga\ \cite{zhao_complex_2023}.
+However, this strategy assigns identical weights to configurations that possess very different
+average energies, as illustrated in Fig.~\ref{fig_energy_mae_comparison}(a).
+For example, a $\beta$-phase crystal cell equilibrated at ambient conditions is assigned the
+same weight as a $\beta$-phase crystal cell compressed to about 60\% of its lattice constant,
+even though their average energies differ by $\sim$50~eV/atom.
+From a thermodynamic perspective, configurations with higher average energies correspond to
+significantly lower occurrence probabilities, whereas the tabGAP training treats them equally.
 
+In contrast, the NEP model exhibits weaker fluctuations in energy prediction accuracy
+across different configuration types.
+Our NEP is trained using a combined energy-dependent and configuration-type weighting strategy,
+with parameters carefully tuned to balance the emphasis on physically important configuration
+types and thermodynamics-informed rescaling.
+This balance substantially reduces the MAE for many nonstoichiometric and amorphous
+configurations, while introducing only a limited increase in the MAE for crystalline phases.
+As a result, NEP achieves a markedly improved overall energy-prediction accuracy compared with
+tabGAP across different energy ranges
+[Fig.~\ref{fig_energy_mae_comparison}(b)].
+Moreover, the improvement in force predictions achieved by NEP over tabGAP is less dramatic
+but more uniform across different configuration types
+[Fig.~\ref{fig_mae_by_config_type_comparison}(b)].
+For noncrystalline configurations, the force MAE of NEP is consistently slightly smaller
+than that of tabGAP, whereas for crystalline configurations the performances of the two
+models are largely comparable.
+In contrast, the improvement in virial prediction is the most pronounced
+[Fig.~\ref{fig_mae_by_config_type_comparison}(c)].
+For noncrystalline configurations, the virial MAE of NEP is significantly smaller than that
+of tabGAP, and for crystalline configurations NEP also consistently yields smaller errors.
+
+We believe that the overall superior performance of NEP over tabGAP in predicting energies,
+forces, and virials is primarily attributed to the energy-dependent rescaling strategy,
+as illustrated in Fig.~\ref{fig_energy_mae_comparison}(a).
+The rescaling factors remain close to unity for the most stable configurations, decrease
+to about 1/2 when the average potential energy increases by $\sim$1~eV above that of the
+ambient $\beta$ phase, and then rapidly drop with increasing energy, eventually becoming
+smaller than $10^{-3}$ for the highest-energy configurations in the GAP dataset.
+The energy-prediction performances of tabGAP, NEP trained with energy-dependent rescaling,
+and NEP trained without energy-dependent rescaling over different energy ranges are shown in
+Fig.~\ref{fig_energy_mae_comparison}(b).
+Without energy-dependent rescaling, NEP outperforms tabGAP only for configurations whose
+average energies exceed those of the ambient $\beta$ phase by more than 0.5~eV/atom.
+In contrast, with the energy-dependent rescaling scheme, NEP surpasses tabGAP across the
+entire energy range, at the cost of only a decrease in accuracy for extremely
+thermodynamically rare high-energy configurations.
 
 \subsection{Physical process-oriented training set augmentation}
 
