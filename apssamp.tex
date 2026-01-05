@@ -165,8 +165,8 @@ phases---from the thermodynamically stable $\beta$ phase \cite{li_deep_2020,liu_
 to metastable $\alpha$ \cite{sun_neuroevolution_2023}, $\kappa$ \cite{wang_dissimilar_2024}, 
 $\epsilon$ \cite{sun_neuroevolution_2023}, and amorphous configurations \cite{liu_unraveling_2023}. 
 A landmark achievement was realized by Zhao et al. \cite{zhao_complex_2023}, 
-who introduced a general-purpose MLIP referred to as tabGAP, capable of accurately 
-describing the atomic interactions across all major \ga\ polymorphs. 
+who introduced a general-purpose MLIP referred to as tabGAP, aiming to accurately 
+describe the atomic interactions across all major \ga\ polymorphs. 
 This potential has enabled large-scale simulations of 
 defect evolution \cite{he_threshold_2024,he_ultrahigh_2024,liu_orientation-dependent_2025}, 
 phase transformations \cite{azarov_self-assembling_2025}, 
@@ -260,25 +260,26 @@ In total, the resulting model contains 11,377 trainable parameters.
 We also tested larger parameter settings; however, they did not provide noticeable improvements 
 in accuracy while causing a substantial increase in computational cost.
 
-A robust training-weighting scheme is employed to balance the accuracy across distinct atomic 
+A robust training-weighting scheme is needed to balance the accuracy across distinct atomic 
 environments, which is essential for achieving successful training over an extremely wide range 
 of average atomic energies, spanning from the most stable $\beta$ phase to highly unstable, nonstoichiometric 
 amorphous states under high pressure. 
-Our weighting strategy consists of two components.
-First, we adopt the phase-dependent scaling scheme proposed in Ref.~\cite{zhao_complex_2023}, 
+Two distinct training strategies are tested in this work. 
+The first strategy is to adopt the phase-dependent scaling scheme proposed in Ref.~\cite{zhao_complex_2023}, 
 which enhances the descriptive capability of the model for key \ga\ phases, including its 
-metastable crystalline structures.
-Second, we further rescale the training weights of all configurations according to their 
+metastable crystalline structures. 
+The second strategy is to scale the training weights of all configurations according to their 
 average potential energy per atom, ensuring that the NEP model primarily focuses on low-energy 
 configurations while still retaining reasonable descriptive capability for high-energy states.
-The rescaling factor $\mathcal{F}$ is defined as
+The scaling factor $\mathcal{S}$ is defined as
 \begin{equation}
-\label{eq:rescaling}
-\mathcal{F} = \frac{1}{\left|e_i/\epsilon - e_{\beta\text{-phase}}/\epsilon\right|^{\alpha} + 1},
+\label{eq:scaling}
+\mathcal{S} = \frac{1}{\left|e_i/\epsilon - e_{\beta\text{-phase}}/\epsilon\right|^{\alpha} + 1},
 \end{equation}
 where $e_i$ is the average potential energy per atom of the $i$-th configuration, 
 $e_{\beta\text{-phase}}$ is that of the $\beta$ phase, 
-and $\alpha$ and $\epsilon$ are small constants controlling the strength of the rescaling.
+and $\alpha$ and $\epsilon$ are small constants controlling the strength of the scaling.
+
 The average energy, atomic forces, and virial of each training configuration are used as training targets, 
 with global weights of $\lambda_e=\lambda_f=\lambda_v=1$, following Ref.~\cite{liang_nep89_2025}. 
 Both $\mathcal{L}_1$ and $\mathcal{L}_2$ regularizations are applied with $\lambda_1=\lambda_2=0.05$ to 
@@ -332,10 +333,6 @@ is controlled using Nose-Hoover chain thermostats, with the coupling parameters 
 as shown in Fig.~S1.
 Further methodological details regarding TREKIS are provided in Appendix~\ref{app:trekis}.
 
-\section{RESULTS AND DISCUSSION}
-
-\subsection{General-purpose MLIP benchmarking}
-
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\columnwidth]{comparison_dual_2x3.png}
@@ -350,15 +347,19 @@ for a narrower energy window from $-5.9$ to $-5.4$~eV/atom.
 }
 \end{figure}
 
+\section{RESULTS AND DISCUSSION}
+
+\subsection{Overall performance comparison}
+
 A comprehensive comparison of the predictive capabilities of NEP and tabGAP is
-shown in Fig.~\ref{fig_comparison_dual_2x3}. Our NEP model, trained with an
-energy-dependent scaling strategy, exhibits consistently superior performance
+shown in Fig.~\ref{fig_comparison_dual_2x3}. Our NEP model, trained with the
+energy-dependent weighting strategy proposed here, exhibits consistently superior performance
 over tabGAP.
 Given the wide energy span of the original GAP dataset, we separately analyze
 (1) configurations with a broad energy range (with average energies up to
 5~eV/atom above that of the $\beta$ phase) and
-(2) relatively stable configurations (with average energies within
-0.5~eV/atom of the $\beta$ phase).
+(2) relatively stable configurations (with average energies up to 
+0.5~eV/atom above that of the $\beta$ phase).
 
 For the wide-range-energy configurations, NEP offers pronounced accuracy
 improvements in predicting energies
@@ -391,10 +392,38 @@ The MAE of energy prediction by NEP is 6.4~meV/atom, about half of that of
 tabGAP (11.8~meV/atom), and NEP still maintains noticeable advantages in force
 and virial predictions.
 
-THIS paragraph will discuss the comparison of computational speed between NEP and tabGAP. 
-We will find out that the NEP dominates the tabGAP in computational speed, which also 
-introudces a question that why NEP brokes the trade-off effect by being 
-superior in both speed and accuracy.
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{throughput_comparison.png}
+\caption{\label{fig_throughput_comparison}
+Comparison of the computational throughput between NEP and tabGAP for systems of 
+different sizes. The throughput of NEP is measured on a single NVIDIA H100 GPU, 
+while that of tabGAP is measured on eight CPU nodes, each equipped with  
+two 24-core Intel Xeon Gold 6240R processors.
+}
+\end{figure}
+
+Beyond its superior prediction accuracy, NEP also demonstrates significantly higher
+computational throughput than tabGAP, which breaks the commonly observed accuracy-efficiency 
+trade-off between modern MLIP architectures.
+As shown in Fig.~\ref{fig_throughput_comparison}, we benchmarked the computational throughput
+of NEP and tabGAP for systems containing between $10^4$ and $10^7$ atoms, and found that NEP
+consistently achieves significantly higher throughput across all system sizes.
+For the relatively small system size of $10^4$ atoms, NEP reaches a throughput of
+approximately $5\times10^6$ atom-steps per second, which is about four times higher than that
+of tabGAP ($1.4\times10^6$ atom-steps per second).
+As the system size increases beyond $10^5$ atoms, the throughput of NEP rapidly converges to
+around $1.25\times10^7$ atom-steps per second, whereas the throughput of tabGAP encounters a
+clear bottleneck at approximately $2\times10^6$ atom-steps per second under our test
+conditions.
+It is worth noting that the two potentials are benchmarked on different hardware platforms:
+NEP is evaluated on a single NVIDIA H100 GPU, while tabGAP is tested on eight CPU nodes, each
+equipped with two 24-core Intel Xeon Gold 6240R processors.
+Nevertheless, we believe that this comparison remains meaningful, as both hardware platforms
+have been independently benchmarked by our group and exhibit comparable peak double-precision
+floating-point performance, with the H100 GPU reaching 18.27~TFLOPS and the eight CPU nodes
+achieving 18.92~TFLOPS.
+
 
 \begin{figure*}[htbp]
 \centering
@@ -409,18 +438,18 @@ predictions by NEP and tabGAP for different config types in the GAP dataset.
 \centering
 \includegraphics[width=\columnwidth]{energy_mae_comparison.png}
 \caption{\label{fig_energy_mae_comparison}
-\textbf{(a)} Illustration of the energy-dependent rescaling strategy, where the black curve
+\textbf{(a)} Illustration of the energy-dependent weighting strategy, where the black curve
 represents the rescaling factor as a function of the average potential energy.
 All samples in the GAP dataset are shown as dots colored according to their configuration
 types; their positions along the horizontal axis indicate their average potential energies.
 \textbf{(b)} Comparison of the energy-prediction performance of tabGAP, NEP with
-energy-dependent rescaling, and NEP without energy-dependent rescaling over different
+energy-dependent weighting, and NEP with configuration-type weighting over different
 energy ranges.
 }
 \end{figure}
 
-To clarify this ``pseudo-paradox'', we thoroughly compared the prediction errors of NEP and
-tabGAP over all 22 configuration types in the GAP dataset
+To elucidate the origins of this performance advantage, we systematically compared 
+the prediction errors of NEP and tabGAP across all 22 configuration types in the GAP dataset
 [Fig.~\ref{fig_mae_by_config_type_comparison}].
 We find that the energy MAE of tabGAP exhibits strong fluctuations among different configuration
 types, with some types showing very small errors below 3~meV/atom (e.g., $\beta$ phase,
@@ -435,15 +464,15 @@ For example, a $\beta$-phase crystal cell equilibrated at ambient conditions is 
 same weight as a $\beta$-phase crystal cell compressed to about 60\% of its lattice constant,
 even though their average energies differ by $\sim$50~eV/atom.
 From a thermodynamic perspective, configurations with higher average energies correspond to
-significantly lower occurrence probabilities, whereas the tabGAP training treats them equally.
+significantly lower occurrence probabilities, whereas the configuration-type weighting strategy 
+treats them equally.
 
-In contrast, the NEP model exhibits weaker fluctuations in energy prediction accuracy
+In contrast, the NEP model demonstrates more consistent energy prediction accuracy
 across different configuration types.
-Our NEP is trained using a combined energy-dependent and configuration-type weighting strategy,
-with parameters carefully tuned to balance the emphasis on physically important configuration
-types and thermodynamics-informed rescaling.
-This balance substantially reduces the MAE for many nonstoichiometric and amorphous
-configurations, while introducing only a limited increase in the MAE for crystalline phases.
+As shown in Fig.~\ref{fig_mae_by_config_type_comparison}, the NEP model trained with our 
+energy-dependent weighting strategy 
+substantially reduces the MAE for nonstoichiometric and amorphous
+configurations while maintaining low MAE values for crystalline phases.
 As a result, NEP achieves a markedly improved overall energy-prediction accuracy compared with
 tabGAP across different energy ranges
 [Fig.~\ref{fig_energy_mae_comparison}(b)].
@@ -453,28 +482,155 @@ but more uniform across different configuration types
 For noncrystalline configurations, the force MAE of NEP is consistently slightly smaller
 than that of tabGAP, whereas for crystalline configurations the performances of the two
 models are largely comparable.
-In contrast, the improvement in virial prediction is the most pronounced
+Notably, the improvement in virial prediction is the most pronounced
 [Fig.~\ref{fig_mae_by_config_type_comparison}(c)].
 For noncrystalline configurations, the virial MAE of NEP is significantly smaller than that
 of tabGAP, and for crystalline configurations NEP also consistently yields smaller errors.
 
 We believe that the overall superior performance of NEP over tabGAP in predicting energies,
-forces, and virials is primarily attributed to the energy-dependent rescaling strategy,
+forces, and virials is primarily attributed to our energy-dependent weighting strategy,
 as illustrated in Fig.~\ref{fig_energy_mae_comparison}(a).
-The rescaling factors remain close to unity for the most stable configurations, decrease
+The weighting factors remain close to unity for the most stable configurations, decrease
 to about 1/2 when the average potential energy increases by $\sim$1~eV above that of the
 ambient $\beta$ phase, and then rapidly drop with increasing energy, eventually becoming
 smaller than $10^{-3}$ for the highest-energy configurations in the GAP dataset.
-The energy-prediction performances of tabGAP, NEP trained with energy-dependent rescaling,
-and NEP trained without energy-dependent rescaling over different energy ranges are shown in
+The energy-prediction performances of tabGAP, NEP trained with energy-dependent weighting,
+and NEP trained with configuration-type weighting over different energy ranges are shown in
 Fig.~\ref{fig_energy_mae_comparison}(b).
-Without energy-dependent rescaling, NEP outperforms tabGAP only for configurations whose
+With configuration-type weighting, NEP outperforms tabGAP only for configurations whose
 average energies exceed those of the ambient $\beta$ phase by more than 0.5~eV/atom.
-In contrast, with the energy-dependent rescaling scheme, NEP surpasses tabGAP across the
-entire energy range, at the cost of only a decrease in accuracy for extremely
+In contrast, with the energy-dependent weighting scheme, NEP surpasses tabGAP across the
+entire energy range, at the cost of only a decrease in accuracy for 
 thermodynamically rare high-energy configurations.
 
-\subsection{Physical process-oriented training set augmentation}
+\subsection{Training set augmentation}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{energy_volume_comparison.png}
+\caption{\label{fig_energy_volume_comparison}
+Energy-volume curves for the $\alpha$, $\beta$, $\delta$, $\gamma$, and $\kappa$ phases 
+predicted by NEP (solid circles) and tabGAP (solid squares), compared with DFT reference 
+data (open circles). Different phases are color-coded as indicated.
+}
+\end{figure}  
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{melting_pca.png}
+\caption{\label{fig_melting_pca}
+Energy predictions for configurations sampled from heating--cooling processes 
+of the $\beta$ phase under various pressure and volume conditions, as predicted by \textbf{(a)} 
+tabGAP, \textbf{(b)} NEP trained on the GAP dataset, and \textbf{(c)} NEP trained on the 
+augmented dataset. 
+\textbf{(d)} PCA projection of configurations from the heating--cooling processes 
+along with related configurations from the GAP dataset.
+}
+\end{figure}
+
+The $\beta \to \gamma$ transition is a key phenomenon widely observed in irradiation
+experiments on \ga\
+\cite{zhao_crystallization_2025,han_electronic_2025,abdullaev_ions_2025}.
+However, $\gamma$-phase configurations are underrepresented in the original GAP dataset,
+raising concerns about whether tabGAP can accurately describe the physical properties of
+the $\gamma$ phase.
+To address this issue, we sampled 60 configurations along the energy--volume curve of the
+$\gamma$ phase using the same sampling protocol as employed for the GAP dataset.
+The energy--volume curve of the $\gamma$ phase obtained from DFT calculations, together
+with the corresponding curves of the $\alpha$, $\beta$, $\delta$, and $\kappa$ phases
+included in the original GAP dataset, are used as reference data in
+Fig.~\ref{fig_energy_volume_comparison} to assess the performance of NEP and tabGAP in
+describing the equation of state of \ga\ polymorphs.
+
+The first notable observation is that tabGAP systematically overpredicts the energy of
+the $\gamma$ phase by nearly 20~meV/atom relative to the DFT results, indicating limited
+extrapolation capability for zero-shot configurations that deviate from its training set.
+NEP shows improved zero-shot performance for $\gamma$-phase configurations
+[Fig.~S], although it still overestimates their energies.
+The NEP model trained with the augmented dataset performs best, achieving an energy MAE
+about 3~meV/atom for the $\gamma$ phase.
+In addition, both NEP and tabGAP accurately reproduce the energy--volume curves of the
+$\alpha$ and $\beta$ phases, with predictions nearly overlapping with the DFT data.
+These two phases are the most extensively studied polymorphs in the \ga\ community, and
+their accurate equation-of-state description is therefore essential for the overall
+reliability of MLIPs.
+Notably, NEP also provides a good description of the $\kappa$-phase energy--volume curve,
+whereas tabGAP exhibits a noticeable overestimation of the corresponding energies.
+Given that the $\beta \to \kappa$ transition has also been reported in irradiation
+experiments on \ga\ \cite{han_electronic_2025}, the improved description of the $\kappa$
+phase constitutes another advantage of NEP over tabGAP.
+
+Although NEP performs better for most polymorphs, tabGAP shows a clear advantage in
+describing the $\delta$ phase.
+It is worth noting, however, that both the $\delta$ and $\gamma$ phases are short-range
+ordered metastable structures that act as transitional states during $\beta$-\ga\
+irradiation, and they possess similar cohesive energies despite their different densities.
+As a result, although NEP slightly overpredicts the energies of both $\delta$ and $\gamma$
+phases by about 3~meV/atom, it still correctly captures their relative energetics and
+thermodynamic similarity.
+In contrast, the accurate description of the $\delta$ phase but the substantial
+overprediction of the $\gamma$ phase by tabGAP suggest that tabGAP may fail to reproduce
+the thermodynamic proximity between the $\delta$ and $\gamma$ phases.
+
+Irradiation of solids is often accompanied by atomic recoil and/or electronic excitation
+processes, which can give rise to pronounced local thermal effects.
+As a consequence, melting, cooling, and subsequent recrystallization processes are
+frequently observed during irradiation.
+Whether an MLIP can reliably describe such highly non-equilibrium processes is therefore
+crucial for irradiation simulations.
+Moreover, the disordered structures generated during heating exhibit a much more complex
+potential-energy landscape than the original crystalline phases, posing significant
+challenges to both the completeness of the training dataset and the zero-shot capability
+of MLIPs.
+
+To systematically assess the performance of NEP and tabGAP in describing the
+heating--cooling behavior of the $\beta$ phase, we sampled 600 configurations from six
+independent molecular-dynamics simulations.
+These simulations were carried out using a NEP model trained on the original GAP dataset
+to perform heating--cooling cycles on a $\beta$-phase supercell containing 160 atoms.
+Six distinct simulation conditions were considered:
+
+\noindent
+(1) Config \textit{0GPa}: NPT at 0~GPa; \newline
+(2) Config \textit{1GPa}: NPT at 1~GPa; \newline
+(3) Config \textit{10GPa}: NPT at 10~GPa; \newline
+(4) Config \textit{v1}: NVT at the original cell volume; \newline
+(5) Config \textit{v0.9}: NVT with the volume rescaled to 0.9; \newline
+(6) Config \textit{v1.1}: NVT with the volume rescaled to 1.1.
+
+The energy predictions obtained using tabGAP and the NEP model trained on the GAP dataset
+are compared with the corresponding DFT reference data in
+Fig.~\ref{fig_melting_pca}(a) and Fig.~\ref{fig_melting_pca}(b), respectively.
+Overall, NEP exhibits better zero-shot performance for low-energy configurations than
+tabGAP, whereas both models systematically underpredict the energies of high-energy
+configurations.
+Specifically, tabGAP overestimates the energies of the low-energy configurations in
+Configs \textit{0GPa}, \textit{1GPa}, and \textit{v1.1}, indicating an overall energy
+overestimation for configurations corresponding to relatively low environmental pressures
+near the melting temperature.
+In contrast, NEP consistently provides more accurate predictions for the low-energy
+configurations, further demonstrating its superior extrapolation capability.
+For the high-energy configurations, both models exhibit the systematic softening problem
+reported in Ref.~\cite{deng_systematic_2024}, which manifests as an overall underprediction
+of the energies of configurations far from equilibrium.
+This softening behavior is more pronounced for NEP than for tabGAP, resulting in an overall
+MAE of 17.4~meV/atom in Fig.~\ref{fig_melting_pca}(b), slightly larger than that of tabGAP
+(16.5~meV/atom) shown in Fig.~\ref{fig_melting_pca}(a).
+
+To alleviate the softening problem of NEP, half of these 600 configurations were selected
+based on PCA filtering and added to the augmented training dataset.
+As shown in Fig.~\ref{fig_melting_pca}(c), the NEP model trained on the augmented dataset
+exhibits significantly improved performance across the entire energy range.
+The overall MAE is reduced to 8.8~meV/atom, which is approximately half of that obtained with
+models trained on the original GAP dataset.
+Although the softening problem is not completely eliminated, this is a reasonable compromise 
+by the energy-dependent weighting strategy, as the primary objective of our NEP training is 
+to accurately describe stable and metastable states under ambient conditions.
+Figure~\ref{fig_melting_pca}(d) presents the PCA projection of the training configurations
+from the heating--cooling processes together with related configurations from the GAP
+dataset.
+The newly added samples effectively fill the gaps in descriptor space between the original
+$\beta$-phase, melting, and amorphous configurations, thereby validating our sampling strategy.
 
 \subsection{SHI irradiation simulations}
 
