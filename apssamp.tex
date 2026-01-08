@@ -139,11 +139,11 @@ Consequently, a comprehensive theoretical understanding of \ga---particularly of
 complex polymorphic nature---is essential for realizing its full potential in practical 
 applications.
 
-Early theoretical investigations of \ga\ predominantly focused on its electronic structure 
+Early theoretical investigations of \ga\ focused on its electronic structure 
 using first-principles methods \cite{he_first-principles_2006,xu_structure_2007}, 
 laying the groundwork for understanding its doping behavior \cite{varley_oxygen_2010}, 
 lattice dynamics \cite{yan_phonon_2018,yang_lattice_2024}, 
-interfaces \cite{bermudez_structure_2006}, and phase stability \cite{fan_low-energy_2022}. 
+interface states \cite{bermudez_structure_2006}, and phase stability \cite{fan_low-energy_2022}. 
 While first-principles approaches continue to offer critical insights, their high computational 
 cost and limited scalability pose significant challenges for modeling large-scale phenomena, 
 such as irradiation-induced phase transitions or extended defect evolution 
@@ -178,6 +178,26 @@ to other state-of-the-art MLIPs, including relatively lower accuracy and computa
 speed, as will be demonstrated in the following sections. 
 These limitations motivate us to rigorously benchmark the overall 
 performance of tabGAP and develop a new, more accurate and efficient MLIP for \ga.
+
+In this work, we adopt the neuroevolution potential (NEP) framework, which is well known
+for its high computational efficiency~\cite{xu_gpumd_2025}, to construct MLIPs for \ga.
+To capture the complex potential-energy landscape of Ga--O compounds, we propose an
+energy-dependent weighting strategy for training.
+With this strategy, the resulting NEP model achieves consistently higher prediction
+accuracy than tabGAP across all energy ranges and for most configuration types.
+Furthermore, we find that both MLIP architectures exhibit varying degrees of zero-shot
+prediction limitations as well as systematic softening of the energy landscape.
+To mitigate these issues, we further augment the training dataset with additional
+configurations generated following physically motivated sampling rules.
+As a representative application, to clarify recent controversies surrounding swift heavy
+ion (SHI) irradiation experiments on $\beta$-\ga, we train a dedicated NEP model using a
+dataset augmented with additional $\gamma$-phase configurations and $\beta$-phase
+heating--cooling pathways.
+High-throughput MD simulations based on this model yield a series of irradiated
+$\beta$-\ga\ structures whose ion-track sizes systematically depend on the electronic
+energy loss.
+The simulated results are in quantitative agreement with experimental observations and
+provide a consistent physical explanation for the reported experimental discrepancies.
 
 \section{Methodology}
 
@@ -302,7 +322,7 @@ However, we find that the GAP dataset still lacks certain key configurations req
 to recover essential physical features in our irradiation simulations. 
 To address this issue, we augment the dataset with additional training configurations generated 
 using exactly the same sampling protocol as for the GAP dataset.
-These newly sampled configurations are found to lie beyond the interpolation capability of tabGAP 
+These newly sampled configurations are found to lie beyond the extrapolation capability of tabGAP 
 and are crucial for accurately capturing SHI irradiation-induced phenomena.
 Two types of configurations are added. 
 The first type comprises 60 structures along the energy--volume 
@@ -315,8 +335,8 @@ The second type consists of 300 configurations sampled from heating--cooling pro
 of the $\beta$ phase under various pressure and volume conditions,
 because such thermodynamic pathways frequently occur during irradiation.
 Our principle component analysis (PCA) shows that these newly added configurations 
-effectively fill the gap in the configuration space between the $\beta$ phase 
-and the molten/disordered states that exists in the original GAP dataset.
+effectively fill the gap in the configuration space with the $\beta$ phase 
+and the molten/amorphous states that exists in the original GAP dataset [Fig.~\ref{fig_melting_pca}(d)].
 
 \subsection{Simulations}
 
@@ -353,7 +373,7 @@ for a narrower energy window from $-5.9$ to $-5.4$~eV/atom.
 
 A comprehensive comparison of the predictive capabilities of NEP and tabGAP is
 shown in Fig.~\ref{fig_comparison_dual_2x3}. Our NEP model, trained with the
-energy-dependent weighting strategy proposed here, exhibits consistently superior performance
+energy-dependent weighting strategy, exhibits consistently superior performance
 over tabGAP.
 Given the wide energy span of the original GAP dataset, we separately analyze
 (1) configurations with a broad energy range (with average energies up to
@@ -361,7 +381,7 @@ Given the wide energy span of the original GAP dataset, we separately analyze
 (2) relatively stable configurations (with average energies up to 
 0.5~eV/atom above that of the $\beta$ phase).
 
-For the wide-range-energy configurations, NEP offers pronounced accuracy
+For the configurations with a broad energy range, NEP offers pronounced accuracy
 improvements in predicting energies
 [Fig.~\ref{fig_comparison_dual_2x3}(a)],
 forces
@@ -379,7 +399,7 @@ The MAE of force prediction by NEP is 303.6~\meVA, approximately three quarters
 of that of tabGAP (392.7~\meVA), while the MAE of virial prediction is
 71.6~meV for NEP and 170.2~meV for tabGAP.
 The overall MAEs of both models remain relatively large mainly because the dataset
-covers an extremely broad energy space.
+covers an extremely broad energy range.
 For the relatively stable configurations, both models show significant improvements in
 energy prediction
 [Fig.~\ref{fig_comparison_dual_2x3}(b)],
@@ -404,8 +424,8 @@ two 24-core Intel Xeon Gold 6240R processors.
 \end{figure}
 
 Beyond its superior prediction accuracy, NEP also demonstrates significantly higher
-computational throughput than tabGAP, which breaks the commonly observed accuracy-efficiency 
-trade-off between modern MLIP architectures.
+computational throughput than tabGAP, breaking the accuracy--efficiency 
+trade-off common in modern MLIP architectures.
 As shown in Fig.~\ref{fig_throughput_comparison}, we benchmarked the computational throughput
 of NEP and tabGAP for systems containing between $10^4$ and $10^7$ atoms, and found that NEP
 consistently achieves significantly higher throughput across all system sizes.
@@ -491,14 +511,14 @@ We believe that the overall superior performance of NEP over tabGAP in predictin
 forces, and virials is primarily attributed to our energy-dependent weighting strategy,
 as illustrated in Fig.~\ref{fig_energy_mae_comparison}(a).
 The weighting factors remain close to unity for the most stable configurations, decrease
-to about 1/2 when the average potential energy increases by $\sim$1~eV above that of the
-ambient $\beta$ phase, and then rapidly drop with increasing energy, eventually becoming
+to 1/2 when the average potential energy increases by 1~eV/atom above that of the
+optimized $\beta$ phase, and then rapidly drop with increasing energy, eventually becoming
 smaller than $10^{-3}$ for the highest-energy configurations in the GAP dataset.
 The energy-prediction performances of tabGAP, NEP trained with energy-dependent weighting,
 and NEP trained with configuration-type weighting over different energy ranges are shown in
 Fig.~\ref{fig_energy_mae_comparison}(b).
 With configuration-type weighting, NEP outperforms tabGAP only for configurations whose
-average energies exceed those of the ambient $\beta$ phase by more than 0.5~eV/atom.
+average energies exceed those of the optimized $\beta$ phase by more than 0.5~eV/atom.
 In contrast, with the energy-dependent weighting scheme, NEP surpasses tabGAP across the
 entire energy range, at the cost of only a decrease in accuracy for 
 thermodynamically rare high-energy configurations.
@@ -539,8 +559,8 @@ $\gamma$ phase using the same sampling protocol as employed for the GAP dataset.
 The energy--volume curve of the $\gamma$ phase obtained from DFT calculations, together
 with the corresponding curves of the $\alpha$, $\beta$, $\delta$, and $\kappa$ phases
 included in the original GAP dataset, are used as reference data in
-Fig.~\ref{fig_energy_volume_comparison} to assess the performance of NEP and tabGAP in
-describing the equation of state of \ga\ polymorphs.
+Fig.~\ref{fig_energy_volume_comparison} to assess the performance of NEP (on the augmented dataset) 
+and tabGAP in describing the equation of state of \ga\ polymorphs.
 
 The first notable observation is that tabGAP systematically overpredicts the energy of
 the $\gamma$ phase by nearly 20~meV/atom relative to the DFT results, indicating limited
@@ -562,9 +582,8 @@ phase constitutes another advantage of NEP over tabGAP.
 
 Although NEP performs better for most polymorphs, tabGAP shows a clear advantage in
 describing the $\delta$ phase.
-It is worth noting, however, that both the $\delta$ and $\gamma$ phases are 
-metastable structures that act as transitional states during $\beta$-\ga\
-irradiation, and they possess similar cohesive energies despite their different densities.
+However, it is worth noting that both the $\delta$ and $\gamma$ phases are 
+metastable structures that possess similar cohesive energies despite their different densities.
 As a result, although NEP slightly overpredicts the energies of both $\delta$ and $\gamma$
 phases by about 3~meV/atom, it still correctly captures their relative energetics and
 thermodynamic similarity.
@@ -585,7 +604,7 @@ of MLIPs.
 
 To systematically assess the performance of NEP and tabGAP in describing the
 heating--cooling behavior of the $\beta$ phase, we sampled 600 configurations from six
-independent molecular-dynamics simulations.
+independent MD simulations.
 These simulations were carried out using a NEP model trained on the original GAP dataset
 to perform heating--cooling cycles on a $\beta$-phase supercell containing 160 atoms.
 Six distinct simulation conditions were considered:
@@ -610,8 +629,8 @@ overestimation for configurations corresponding to relatively low environmental 
 near the melting temperature.
 In contrast, NEP consistently provides more accurate predictions for the low-energy
 configurations, further demonstrating its superior extrapolation capability.
-For the high-energy configurations, both models exhibit the systematic softening problem
-reported in Ref.~\cite{deng_systematic_2024}, which manifests as an overall underprediction
+For the high-energy configurations, both models exhibit systematic softening 
+issues~\cite{deng_systematic_2024}, characterized by an overall underprediction
 of the energies of configurations far from equilibrium.
 This softening behavior is more pronounced for NEP than for tabGAP, resulting in an overall
 MAE of 17.4~meV/atom in Fig.~\ref{fig_melting_pca}(b), slightly larger than that of tabGAP
@@ -630,7 +649,7 @@ Figure~\ref{fig_melting_pca}(d) presents the PCA projection of the training conf
 from the heating--cooling processes together with related configurations from the GAP
 dataset.
 The newly added samples effectively fill the gaps in descriptor space between the original
-$\beta$-phase, melting, and amorphous configurations, thereby validating our sampling strategy.
+$\beta$-phase, molten, and amorphous configurations, thereby validating our sampling strategy.
 
 \begin{figure*}[htbp]
 \centering
@@ -653,24 +672,32 @@ lattice sites for each region.
 
 Recently, SHI irradiation experiments on $\beta$-\ga\ have been carried out by three
 independent groups
-\cite{xu_thermal_2025,han_electronic_2025,abdullaev_ions_2025}.
+\cite{xu_thermal_2025,han_electronic_2025,abdullaev_ions_2025,ai_radiation_2019}.
 However, these studies have reported notably different conclusions regarding the
 resulting track structures.
 Xu \textit{et al.}~\cite{xu_thermal_2025} reported that the tracks are fully 
-amorphous when the electronic energy loss exceeds 20~keV/nm.
+amorphous when the electronic energy loss ($S_e$) exceeds a threshold of approximately 17~keV/nm.
 In contrast, Han \textit{et al.}~\cite{han_electronic_2025} observed the formation of
 $\gamma$, $\delta$, and $\kappa$ phases within the tracks.
 Abdullaev \textit{et al.}~\cite{abdullaev_ions_2025} further reported that the tracks in
-$\beta$-\ga\ are nearly pure $\gamma$ phase at an electronic energy loss of
-approximately 21~keV/nm.
+$\beta$-\ga\ are nearly pure $\gamma$ phase at $S_e$ of approximately 21~keV/nm.
 To clarify these experimental discrepancies, reliable theoretical simulations of SHI
 irradiation in $\beta$-\ga\ are highly desirable.
-Although several MD simulations based on tabGAP potentials have been reported
-\cite{han_electronic_2025,abdullaev_ions_2025}, the limitations discussed above raise
-concerns regarding the reliability of the track structures predicted by tabGAP.
-Therefore, we perform SHI irradiation simulations on $\beta$-\ga\ using the NEP model
+Although several related MD simulations based on tabGAP potentials have been reported
+\cite{han_electronic_2025,abdullaev_ions_2025}, the limitations of tabGAP discussed above raise
+concerns regarding the reliability of its predictions for track structures.
+Therefore, we performed SHI irradiation simulations on $\beta$-\ga\ using the NEP model
 trained on the augmented dataset with energy-dependent weighting, with the aim of
-demonstrating the practical predictive capability of the NEP framework.
+demonstrating the practical predictive capability of NEP by elucidating the experimental discrepancies.
+
+\begin{figure*}[htbp]
+\centering
+\includegraphics[width=\textwidth]{tracks.png}
+\caption{\label{fig_tracks}
+Transverse and longitudinal cross-sectional views of the SHI-irradiated $\beta$-\ga\ atomic structure 
+with various electronic energy losses.
+}
+\end{figure*}
 
 A representative ion track formed in $\beta$-\ga\ and the corresponding structural
 analysis are shown in Fig.~\ref{fig_ion_track}.
@@ -691,8 +718,8 @@ to assist structural identification.
 The amorphous core corresponds to the high-contrast region observed in TEM experiments,
 with a diameter of approximately 5~nm, consistent with the TEM measurements reported in
 Ref.~\cite{xu_thermal_2025}.
-Within the core region, the RDFs collapse into a single nearest-neighbor peak, indicating
-the loss of long-range order.
+In the core region, the RDFs are characterized by a solitary nearest-neighbor peak, 
+with the absence of long-range structural features confirming the transition to a disordered state.
 The atomic-displacement distributions further reveal that oxygen atoms completely leave
 their original fcc sites, and most gallium atoms are also displaced away from the vicinity of
 their original four- and six-coordinated sites.
@@ -700,7 +727,7 @@ their original four- and six-coordinated sites.
 Outside the amorphous core, a clear $\gamma$-phase structure is observed.
 In this region, gallium atoms are randomly distributed among four- and six-coordinated
 sites, while oxygen atoms predominantly occupy their pristine fcc positions.
-The RDF analysis shows the absence of the second gallium peak, whereas the characteristic
+The RDF analysis shows the absence of the second gallium--gallium peak, whereas the characteristic
 fcc oxygen peak gradually recovers.
 As shown in Fig.~\ref{fig_ion_track}(d), most oxygen atoms in this region return to their
 original fcc sites, and most gallium atoms also reoccupy four- and six-coordinated sites,
@@ -727,6 +754,107 @@ deformation induced by the ion track.
 Such deformation has also been observed in our TEM characterizations and is found to
 significantly influence the electronic properties of the $\beta$ phase; these results will
 be reported elsewhere.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{track_diameter_comparison.png}
+\caption{\label{fig_track_diameter_comparison}
+Comparison of the track diameters predicted in this work and the experimental 
+results reported in Ref.~\cite{xu_thermal_2025} and Ref.~\cite{ai_radiation_2019}.
+}
+\end{figure}
+
+One of the central controversies in recent SHI irradiation experiments on
+$\beta$-\ga\ concerns the crystallinity of the ion tracks.
+Xu \textit{et al.}~\cite{xu_thermal_2025} reported that the tracks are fully amorphous,
+whereas Abdullaev \textit{et al.}~\cite{abdullaev_ions_2025} concluded that the tracks
+consist predominantly of the $\gamma$ phase.
+It is noteworthy that the samples studied by Abdullaev \textit{et al.} were irradiated
+with a relatively low $S_e$ of approximately 21~keV/nm, whereas most
+samples examined by Xu \textit{et al.} were subjected to higher electronic energy losses
+exceeding 30~keV/nm.
+This difference in $S_e$ may therefore provide a natural explanation
+for the seemingly conflicting experimental conclusions.
+However, Xu \textit{et al.} also reported amorphous tracks at energy losses close to
+20~keV/nm, which appears difficult to reconcile directly with the results of
+Abdullaev \textit{et al.}
+This situation motivates a systematic investigation of SHI irradiation over a wide
+range of $S_e$.
+To this end, we performed a series of SHI irradiation simulations with $S_e$ ranging 
+from 15.68 to 36.24~keV/nm.
+Five representative cases are shown in Fig.~\ref{fig_tracks}.
+
+When $S_e = 15.68$~keV/nm, no ion track is formed, consistent with the experimental
+threshold of approximately 17~keV/nm reported by Xu \textit{et al.}~\cite{xu_thermal_2025}.
+The oxygen sublattice remains largely intact and defect-free, in agreement with
+previous theoretical predictions~\cite{he_ultrahigh_2024}.
+Only a small number of gallium interstitials are generated, most of which occupy
+four- or six-coordinated sites within the FCC oxygen framework.
+Such defect configurations can be regarded as incipient signatures of $\gamma$-phase
+formation.
+When $S_e$ increases to 19.18~keV/nm, slightly above the experimental threshold,
+a limited number of oxygen defects emerge, leading to the formation of discontinuous
+small amorphous clusters along the ion penetration direction.
+These clusters would appear as localized high-contrast regions in TEM observations.
+Most regions along the ion trajectory remain in the $\beta$ phase, while several
+$\gamma$-phase clusters are observed near the track center.
+Given the similarity between the diffraction patterns of the $\beta$ and $\gamma$
+phases, such a low fraction of $\gamma$ phase is expected to be difficult to
+distinguish experimentally from the $\beta$ matrix.
+
+At $S_e = 21.15$~keV/nm, corresponding to the energy-loss regime where the most
+controversial experimental interpretations have been reported, a clear core--shell
+track structure emerges.
+The shell consists predominantly of a well-defined $\gamma$ phase, while the core
+forms a highly disordered region.
+Notably, although this core region would exhibit strong contrast in TEM images and has
+a diameter of approximately 3.3~nm, it is not fully amorphous.
+A substantial fraction of oxygen atoms remain distributed around their pristine
+FCC sites, albeit with large displacements.
+This quasi-FCC oxygen framework partially constrains the displacement of gallium atoms.
+Along the ion penetration direction, the thicknesses of the core and shell
+fluctuate heavily, and in some segments the disordered core even disappears, resulting in
+a track composed entirely of the $\gamma$ phase.
+These observations suggest that the highly disordered core should be interpreted
+as a precursor state of the $\gamma$ phase, which may transform into a standard 
+$\gamma$ structure under mild post-irradiation conditions, such as
+long-term defect relaxation at ambient conditions or TEM-induced structural recovery.
+
+When $S_e$ further increases to 26.05~keV/nm, the track diameter grows rapidly and
+the core reaches approximately 4.5~nm in diameter.
+In this regime, the track core becomes fully amorphous, exhibiting no recognizable
+structural motifs.
+Compared with the case at $S_e = 21.15$~keV/nm, fluctuations along the ion penetration
+direction are strongly suppressed, indicating the formation of a continuous amorphous
+core and a stable core--shell structure.
+At $S_e = 36.24$~keV/nm, the track size increases further, with the core diameter
+reaching approximately 7.0~nm, while the core--shell morphology remains evident.
+Interestingly, the thickness of the surrounding $\gamma$-phase shell does not
+increase with increasing track size and saturates at about 1~nm.
+
+To validate our simulations, we compared the predicted track diameters with
+experimental measurements reported in Refs.~\cite{xu_thermal_2025,ai_radiation_2019},
+as shown in Fig.~\ref{fig_track_diameter_comparison}.
+The figure includes simulation results for ten different values of $S_e$, with each
+case repeated three times to reduce statistical fluctuations in the MD simulations.
+The excellent agreement between simulation and experiment demonstrates the
+reliability of our NEP model.
+Besides, the total computational throughput for these results exceeds
+$1.4\times10^{13}$ atom-steps.
+Achieving the same throughput with tabGAP would require more than 83 days on eight
+CPU nodes, each equipped with two 24-core Intel Xeon Gold 6240R processors, whereas
+the NEP simulations were completed in less than four days on a GPU cluster with
+four NVIDIA GeForce RTX~4090 GPUs.
+These results further highlight the suitability of NEP for high-throughput,
+large-scale MD simulations.
+
+\section{Conclusion}
+In this work, we have demonstrated the practical predictive capability of NEP by 
+elucidating the experimental discrepancies in SHI irradiation experiments on $\beta$-\ga.
+We have shown that NEP can accurately predict the track structures of $\beta$-\ga\ 
+over a wide range of $S_e$, from 15.68 to 36.24~keV/nm.
+The results are in quantitative agreement with the experimental observations and 
+provide a reliable physical explanation for the reported experimental discrepancies.
 
 \begin{acknowledgments}
 We wish to acknowledge the support of the author community in using
