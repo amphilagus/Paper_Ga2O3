@@ -19,8 +19,8 @@
 %  4)  latex apssamp.tex
 %
 \documentclass[%
- reprint,
-%superscriptaddress,
+reprint,
+superscriptaddress,
 %groupedaddress,
 %unsortedaddress,
 %runinaddress,
@@ -69,50 +69,48 @@
 
 \preprint{APS/123-QED}
 
-\title{Manuscript Title:\\with Forced Linebreak}% Force line breaks with \\
-\thanks{A footnote to the article title}%
+\title{A Neuroevolution Potential for Gallium Oxide: \\
+Accurate and Efficient Modeling of Polymorphism and Swift Heavy-Ion Irradiation}% Force line breaks with \\
 
-\author{Ann Author}
- \altaffiliation[Also at ]{Physics Department, XYZ University.}%Lines break automatically or can be forced with \\
-\author{Second Author}%
- \email{Second.Author@institution.edu}
-\affiliation{%
- Authors' institution and/or address\\
- This line break forced with \textbackslash\textbackslash
-}%
-
-\collaboration{MUSO Collaboration}%\noaffiliation
-
-\author{Charlie Author}
- \homepage{http://www.Second.institution.edu/~Charlie.Author}
-\affiliation{
- Second institution and/or address\\
- This line break forced% with \\
-}%
-\affiliation{
- Third institution, the second for Charlie Author
-}%
-\author{Delta Author}
-\affiliation{%
- Authors' institution and/or address\\
- This line break forced with \textbackslash\textbackslash
-}%
-
-\collaboration{CLEO Collaboration}%\noaffiliation
+\author{Yaohui Gu}
+\affiliation{State Key Laboratory of Heavy Ion Science and Technology, Institute of Modern Physics, Chinese Academy of Sciences, Lanzhou 730000, China}
+\affiliation{School of Nuclear Science and Technology, University of Chinese Academy of Sciences, Beijing 100049, China}
+\author{Binbo Li}
+\thanks{Y.G. and B.L. contributed equally to this work.}
+\affiliation{State Key Laboratory of Heavy Ion Science and Technology, Institute of Modern Physics, Chinese Academy of Sciences, Lanzhou 730000, China}
+\affiliation{School of Nuclear Science and Technology, University of Chinese Academy of Sciences, Beijing 100049, China}
+\author{Linyang Jiang}
+\affiliation{State Key Laboratory of Heavy Ion Science and Technology, Institute of Modern Physics, Chinese Academy of Sciences, Lanzhou 730000, China}
+\affiliation{School of Nuclear Science and Technology, University of Chinese Academy of Sciences, Beijing 100049, China}
+\author{And More ...}
+\affiliation{State Key Laboratory of Heavy Ion Science and Technology, Institute of Modern Physics, Chinese Academy of Sciences, Lanzhou 730000, China}
+\author{Jinglai Duan}
+\thanks{Corresponding author. Email: j.duan@impcas.ac.cn}
+\affiliation{State Key Laboratory of Heavy Ion Science and Technology, Institute of Modern Physics, Chinese Academy of Sciences, Lanzhou 730000, China}
+\affiliation{School of Nuclear Science and Technology, University of Chinese Academy of Sciences, Beijing 100049, China}
+\affiliation{Advanced Energy Science and Technology Guangdong Laboratory, Huizhou 516000, China}
 
 \date{\today}% It is always \today, today,
              %  but any date may be explicitly specified
 
 \begin{abstract}
-An article usually includes an abstract, a concise summary of the work
-covered at length in the main body of the article. 
-\begin{description}
-\item[Usage]
-Secondary publications and information retrieval purposes.
-\item[Structure]
-You may use the \texttt{description} environment to structure your abstract;
-use the optional argument of the \verb+\item+ command to give the category of each item. 
-\end{description}
+Gallium oxide (\ga) is a wide-bandgap semiconductor with promising applications in 
+high-power and high-frequency electronics. 
+However, its complex polymorphic nature poses substantial challenges for fundamental 
+studies, particularly in understanding phase-transformation behaviors under nonequilibrium conditions.
+Here, we develop a robust, accurate, and computationally efficient machine-learning 
+interatomic potential (MLIP) for \ga\ based on the neuroevolution potential (NEP) 
+framework combined with an energy-dependent weighting strategy. 
+The resulting NEP potential demonstrates clear advantages over the 
+state-of-the-art tabGAP potential with respect to both accuracy and computational efficiency. 
+Furthermore, we introduce a physically process-oriented sampling strategy to 
+systematically augment the training dataset, thereby enhancing the MLIP performance 
+for targeted physical phenomena. 
+As a representative application, a dedicated NEP potential is constructed for swift heavy-ion (SHI) 
+irradiation simulations of $\beta$-\ga. 
+The simulated results are in quantitative agreement with experimental 
+observations and provide a consistent physical explanation for the reported 
+experimental discrepancies regarding phase transformations in the ion track of $\beta$-\ga.
 \end{abstract}
 
 %\keywords{Suggested keywords}%Use showkeys class option if keyword
@@ -123,15 +121,16 @@ use the optional argument of the \verb+\item+ command to give the category of ea
 
 \section{Introduction}
 
-Gallium oxide (\ga), often regarded as a representative of the fourth generation of 
+Gallium oxide (\ga), a representative of the fourth generation of 
 semiconductors, has garnered widespread interest due to its unique physical and 
-electronic properties.
+electronic properties \cite{pearton_review_2017}.
 With an ultra-wide bandgap, high breakdown electric field, and transparency in the 
-deep ultraviolet region, \ga\ holds significant promise for applications in high-power 
-electronics, UV photodetectors, and transparent conducting oxides. 
+deep ultraviolet region, \ga\ holds significant promise for applications including power 
+electronics \cite{tadjer_toward_2022}, solar-blind UV photodetectors \cite{pratiyush2019advances}, 
+and gas sensors \cite{zhu_gallium_2022}. 
 In addition to its thermodynamically stable monoclinic $\beta$ phase, \ga\ exhibits a 
 rich polymorphism, including metastable $\alpha$ (corundum-type), $\gamma$ 
-(defective spinel), $\delta$ (bixbyite), and $\kappa$ (orthorhombic) phases. 
+(defective spinel), $\delta$ (bixbyite), and $\kappa$ (orthorhombic) phases \cite{yoshioka_structures_2007}. 
 This polymorphic diversity opens new avenues for directional material design and property 
 tuning but also presents formidable challenges in controlled synthesis, phase stability, 
 and interface engineering.
@@ -140,7 +139,7 @@ complex polymorphic nature---is essential for realizing its full potential in pr
 applications.
 
 Early theoretical investigations of \ga\ focused on its electronic structure 
-using first-principles methods \cite{he_first-principles_2006,xu_structure_2007}, 
+using first-principles methods \cite{he_first-principles_2006,xu_structure_2007,yoshioka_structures_2007}, 
 laying the groundwork for understanding its doping behavior \cite{varley_oxygen_2010}, 
 lattice dynamics \cite{yan_phonon_2018,yang_lattice_2024}, 
 interface states \cite{bermudez_structure_2006}, and phase stability \cite{fan_low-energy_2022}. 
@@ -164,7 +163,7 @@ continuous efforts to develop MLIPs tailored for \ga, spanning a wide range of p
 phases---from the thermodynamically stable $\beta$ phase \cite{li_deep_2020,liu_machine_2020,zhao_phase_2021} 
 to metastable $\alpha$ \cite{sun_neuroevolution_2023}, $\kappa$ \cite{wang_dissimilar_2024}, 
 $\epsilon$ \cite{sun_neuroevolution_2023}, and amorphous configurations \cite{liu_unraveling_2023}. 
-A landmark achievement was realized by Zhao et al. \cite{zhao_complex_2023}, 
+A landmark achievement was realized by Zhao \textit{et al.} \cite{zhao_complex_2023}, 
 who introduced a general-purpose MLIP referred to as tabGAP, aiming to accurately 
 describe the atomic interactions across all major \ga\ polymorphs. 
 This potential has enabled large-scale simulations of 
@@ -189,8 +188,8 @@ Furthermore, we find that both MLIP architectures exhibit varying degrees of zer
 prediction limitations as well as systematic softening of the energy landscape.
 To mitigate these issues, we further augment the training dataset with additional
 configurations generated following physically motivated sampling rules.
-As a representative application, to clarify recent controversies surrounding swift heavy
-ion (SHI) irradiation experiments on $\beta$-\ga, we train a dedicated NEP model using a
+As a representative application, to clarify recent controversies surrounding swift heavy-ion (SHI) 
+irradiation experiments on $\beta$-\ga, we train a dedicated NEP model using a
 dataset augmented with additional $\gamma$-phase configurations and $\beta$-phase
 heating--cooling pathways.
 High-throughput MD simulations based on this model yield a series of irradiated
@@ -395,8 +394,8 @@ Moreover, the root mean square error (RMSE) of energy predicted by tabGAP
 reaches 130.2~meV/atom, which is 3.5 times higher than that of NEP
 (37.2~meV/atom), indicating a potential instability of tabGAP over the wide
 energy range.
-The MAE of force prediction by NEP is 303.6~\meVA, approximately three quarters
-of that of tabGAP (392.7~\meVA), while the MAE of virial prediction is
+The MAE of force prediction by NEP is 303.9~\meVA, approximately three quarters
+of that of tabGAP (391.4~\meVA), while the MAE of virial prediction is
 71.6~meV for NEP and 170.2~meV for tabGAP.
 The overall MAEs of both models remain relatively large mainly because the dataset
 covers an extremely broad energy range.
@@ -513,7 +512,7 @@ as illustrated in Fig.~\ref{fig_energy_mae_comparison}(a).
 The weighting factors remain close to unity for the most stable configurations, decrease
 to 1/2 when the average potential energy increases by 1~eV/atom above that of the
 optimized $\beta$ phase, and then rapidly drop with increasing energy, eventually becoming
-smaller than $10^{-3}$ for the highest-energy configurations in the GAP dataset.
+smaller than 0.02 for the highest-energy configurations in the GAP dataset.
 The energy-prediction performances of tabGAP, NEP trained with energy-dependent weighting,
 and NEP trained with configuration-type weighting over different energy ranges are shown in
 Fig.~\ref{fig_energy_mae_comparison}(b).
@@ -566,7 +565,7 @@ The first notable observation is that tabGAP systematically overpredicts the ene
 the $\gamma$ phase by nearly 20~meV/atom relative to the DFT results, indicating limited
 extrapolation capability for zero-shot configurations that deviate from its training set.
 NEP shows improved zero-shot performance for $\gamma$-phase configurations
-[Fig.~S], although it still overestimates their energies.
+[Fig.~S2], although it still overestimates their energies.
 The NEP model trained with the augmented dataset performs best, achieving an energy MAE
 about 3~meV/atom for the $\gamma$ phase.
 In addition, both NEP and tabGAP accurately reproduce the energy--volume curves of the
@@ -637,7 +636,7 @@ MAE of 17.4~meV/atom in Fig.~\ref{fig_melting_pca}(b), slightly larger than that
 (16.5~meV/atom) shown in Fig.~\ref{fig_melting_pca}(a).
 
 To alleviate the softening problem of NEP, half of these 600 configurations were selected
-based on PCA filtering and added to the augmented training dataset.
+based on PCA filtering \cite{chen_neptrain_2025} and added to the augmented training dataset.
 As shown in Fig.~\ref{fig_melting_pca}(c), the NEP model trained on the augmented dataset
 exhibits significantly improved performance across the entire energy range.
 The overall MAE is reduced to 8.8~meV/atom, which is approximately half of that obtained with
@@ -655,8 +654,8 @@ $\beta$-phase, molten, and amorphous configurations, thereby validating our samp
 \centering
 \includegraphics[width=\textwidth]{ion_track.png}
 \caption{\label{fig_ion_track}
-Analysis of a representative ion track in $\beta$-\ga\ generated by the energy deposition from a 19.5~MeV/nucleon 
-\textsuperscript{131}Xe ion. 
+Analysis of a representative ion track in $\beta$-\ga\ generated by the energy deposition from a 70~MeV 
+\textsuperscript{181}Ta ion. 
 \textbf{(a)} Transverse and \textbf{(b)} longitudinal cross-sectional views of the 
 SHI-irradiated $\beta$-\ga\ atomic structure. 
 Four distinct regions are identified in the transverse view (from center to periphery): 
@@ -702,7 +701,7 @@ with various electronic energy losses.
 A representative ion track formed in $\beta$-\ga\ and the corresponding structural
 analysis are shown in Fig.~\ref{fig_ion_track}.
 The ion track is generated by MD simulations driven by the energy deposition of a
-19.5~MeV/nucleon $^{131}$Xe ion, with a total simulation time of 200~ps.
+70~MeV $^{181}$Ta ion, with a total simulation time of 200~ps.
 Based on the transverse cross-sectional view
 [Fig.~\ref{fig_ion_track}(a)], the atomic configuration is manually divided into four
 concentric regions from the center to the periphery:
@@ -715,8 +714,8 @@ region, while Fig.~\ref{fig_ion_track}(d) shows the distributions of atomic disp
 with respect to the ideal $\beta$-phase lattice sites; together, these analyses are used
 to assist structural identification.
 
-The amorphous core corresponds to the high-contrast region observed in TEM experiments,
-with a diameter of approximately 5~nm, consistent with the TEM measurements reported in
+The amorphous core manifests as a high-contrast region in transmission electron microscopy (TEM) experiments,
+with a diameter of approximately 4.5~nm, consistent with the TEM measurements reported in 
 Ref.~\cite{xu_thermal_2025}.
 In the core region, the RDFs are characterized by a solitary nearest-neighbor peak, 
 with the absence of long-range structural features confirming the transition to a disordered state.
@@ -731,9 +730,9 @@ The RDF analysis shows the absence of the second gallium--gallium peak, whereas 
 fcc oxygen peak gradually recovers.
 As shown in Fig.~\ref{fig_ion_track}(d), most oxygen atoms in this region return to their
 original fcc sites, and most gallium atoms also reoccupy four- and six-coordinated sites,
-but with a coordination ratio of approximately 1:1.3, differing from the pristine
+but with a coordination ratio of approximately 1:1.55, differing from the pristine
 $\beta$-phase ratio of 1:1.
-This ratio agrees well with the experimentally reported value of 1:1.35 for the
+This ratio is more consistent with the experimentally reported value of 1:1.35 for the
 $\gamma$-phase structure~\cite{playford_structures_2013}.
 From the longitudinal cross-sectional view
 [Fig.~\ref{fig_ion_track}(b)], the boundary between the amorphous core and the $\gamma$
@@ -759,9 +758,9 @@ be reported elsewhere.
 \centering
 \includegraphics[width=\columnwidth]{track_diameter_comparison.png}
 \caption{\label{fig_track_diameter_comparison}
-Comparison of the track diameters predicted in this work and the experimental 
-results reported in Ref.~\cite{xu_thermal_2025} and Ref.~\cite{ai_radiation_2019}.
-}
+Comparison of the track diameters predicted in this work and the TEM 
+results reported by Xu \textit{et al.}~\cite{xu_thermal_2025} 
+and Ai \textit{et al.}~\cite{ai_radiation_2019}.}
 \end{figure}
 
 One of the central controversies in recent SHI irradiation experiments on
@@ -795,7 +794,6 @@ formation.
 When $S_e$ increases to 19.18~keV/nm, slightly above the experimental threshold,
 a limited number of oxygen defects emerge, leading to the formation of discontinuous
 small amorphous clusters along the ion penetration direction.
-These clusters would appear as localized high-contrast regions in TEM observations.
 Most regions along the ion trajectory remain in the $\beta$ phase, while several
 $\gamma$-phase clusters are observed near the track center.
 Given the similarity between the diffraction patterns of the $\beta$ and $\gamma$
@@ -836,25 +834,34 @@ To validate our simulations, we compared the predicted track diameters with
 experimental measurements reported in Refs.~\cite{xu_thermal_2025,ai_radiation_2019},
 as shown in Fig.~\ref{fig_track_diameter_comparison}.
 The figure includes simulation results for ten different values of $S_e$, with each
-case repeated three times to reduce statistical fluctuations in the MD simulations.
+case repeated three times to reduce statistical fluctuations in the MD simulations. 
 The excellent agreement between simulation and experiment demonstrates the
 reliability of our NEP model.
 Besides, the total computational throughput for these results exceeds
 $1.4\times10^{13}$ atom-steps.
 Achieving the same throughput with tabGAP would require more than 83 days on eight
 CPU nodes, each equipped with two 24-core Intel Xeon Gold 6240R processors, whereas
-the NEP simulations were completed in less than four days on a GPU cluster with
-four NVIDIA GeForce RTX~4090 GPUs.
+the computational time for NEP is estimated to be less than four days on a GPU 
+cluster with four NVIDIA GeForce RTX~4090 GPUs.
 These results further highlight the suitability of NEP for high-throughput,
 large-scale MD simulations.
 
 \section{Conclusion}
-In this work, we have demonstrated the practical predictive capability of NEP by 
-elucidating the experimental discrepancies in SHI irradiation experiments on $\beta$-\ga.
-We have shown that NEP can accurately predict the track structures of $\beta$-\ga\ 
-over a wide range of $S_e$, from 15.68 to 36.24~keV/nm.
-The results are in quantitative agreement with the experimental observations and 
-provide a reliable physical explanation for the reported experimental discrepancies.
+
+In conclusion, by combining the NEP architecture with an energy-dependent weighting
+strategy, we develop a robust, accurate, and computationally efficient MLIP for \ga,
+which demonstrates clear and comprehensive advantages over the state-of-the-art tabGAP
+potential.
+Furthermore, by adopting a physically process-oriented sampling strategy, the NEP model
+trained on the augmented dataset is successfully applied to SHI irradiation simulations
+of $\beta$-\ga.
+The simulated results are in quantitative agreement with experimental observations and
+provide a consistent and reliable physical explanation for the reported experimental
+discrepancies.
+In addition, the impressive computational efficiency of NEP enables large-scale MD
+simulations approaching the device scale for \ga\ systems~\cite{xu_device-scale_2025}.
+This capability opens a new avenue for device-scale design and optimization of
+\ga-based devices from an atomistic simulation perspective.
 
 \begin{acknowledgments}
 We wish to acknowledge the support of the author community in using
@@ -885,7 +892,7 @@ The ion charge $Z_{\text{e}}(v,q)$ is calculated with Barkas formula
 \begin{equation} 
 Z_{\text{e}}(v,q) = Z_{\text{ion}}(1-\exp(-\frac{v}{v_{0}}Z_{\text{ion}}^{-\frac{2}{3}})) 
 \end{equation} 
-where $v$ is the velocity of the ion, $v_{0}=c/125$ is the empirically atomic 
+where $v$ is the velocity of the ion, $v_{0}=c/125$ is the empirical atomic 
 electron velocity and $Z_{\text{ion}}$ is the ion charge in full ionization. 
 The optical energy loss function of \ga\ is taken from 
 Ref.~\cite{he_first-principles_2006}, and fitted with a finite sum of Drude-Lorentz 
@@ -912,7 +919,7 @@ ionization potential.
 \mathrm{Im}(\frac{-1}{\epsilon(\omega,0)})\frac{d\omega}{\omega} = 1 
 \end{equation} 
 \end{enumerate} 
-The free-electron approximation is used to calculated the dispersion relation 
+The free-electron approximation is used to calculate the dispersion relation 
 for the oscillator energy $E_{i}$ and transferred momentum q: 
 \begin{equation} 
 E_{i}(q) = E_{i}(0) + \frac{\hbar^{2}q^{2}}{2m_{\text{e}}} 
