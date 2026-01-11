@@ -147,8 +147,8 @@ While first-principles approaches continue to offer critical insights, their hig
 cost and limited scalability pose significant challenges for modeling large-scale phenomena, 
 such as irradiation-induced phase transitions or extended defect evolution 
 \cite{azarov_disorder-induced_2021,han_unraveling_2025}. 
-Conversely, molecular dynamics (MD) enables simulations over larger time 
-and length scale; however, the empirical interatomic potentials 
+Conversely, molecular dynamics (MD) enables simulations at larger time 
+and length scales; however, the empirical interatomic potentials 
 it relies on often struggle to accurately capture the complex potential energy landscape of 
 \ga's polymorphic phases \cite{blanco_energetics_2005}. 
 
@@ -296,7 +296,7 @@ The scaling factor $\mathcal{S}$ is defined as
 \mathcal{S} = \frac{1}{\left|e_i/\epsilon - e_{\beta\text{-phase}}/\epsilon\right|^{\alpha} + 1},
 \end{equation}
 where $e_i$ is the average potential energy per atom of the $i$-th configuration, 
-$e_{\beta\text{-phase}}$ is that of the $\beta$ phase, 
+$e_{\beta\text{-phase}}$ denotes that of the $\beta$ phase, 
 and $\alpha$ and $\epsilon$ are small constants controlling the strength of the scaling.
 
 The average energy, atomic forces, and virial of each training configuration are used as training targets, 
@@ -317,7 +317,7 @@ a relatively limited number of samples.
 It is generally sufficient for broad, general-purpose applications where ultimate accuracy 
 is not the primary concern.
 
-However, we find that the GAP dataset still lacks certain key configurations required 
+However, the GAP dataset lacks certain key configurations required 
 to recover essential physical features in our irradiation simulations. 
 To address this issue, we augment the dataset with additional training configurations generated 
 using exactly the same sampling protocol as for the GAP dataset.
@@ -345,12 +345,18 @@ In general, the simulations proceed as follows.
 (1) The energy deposition from SHIs in \ga\ is simulated using TREKIS, a Monte Carlo code
 developed to model the electronic kinetics following SHI impact on matter
 \cite{medvedev_time-resolved_2015,rymzhanov_effects_2016}.
-(2) The resulting radial energy profile of the ion track is then used to initialize the atomic
-velocities of the \ga\ lattice for the subsequent MD simulations.
+(2) The resulting radial energy profile of the ion track is used to initialize the atomic
+velocities of the \ga\ lattice for subsequent MD simulations, with a conversion factor of 
+0.45 applied to reproduce the experimentally observed track dimensions.
 (3) The MD simulations are carried out in the NVE ensemble, while the boundary temperature
-is controlled using Nose-Hoover chain thermostats, with the coupling parameters calibrated
-as shown in Fig.~S1.
-Further methodological details regarding TREKIS are provided in Appendix~\ref{app:trekis}.
+is controlled using Nose-Hoover chain thermostats, with the coupling parameters calibrated 
+to 1,000 as shown in Fig.~S1.
+Further methodological details regarding TREKIS are provided in Appendix~\ref{app:trekis}, 
+and technical details for MD simulations are provided in Appendix~\ref{app:md}.
+
+To ensure a fair comparison, all prediction tests for both NEP and tabGAP are performed 
+using the same LAMMPS installation and hardware, eliminating potential software- and 
+hardware-related biases.
 
 \begin{figure}[htbp]
 \centering
@@ -375,10 +381,9 @@ shown in Fig.~\ref{fig_comparison_dual_2x3}. Our NEP model, trained with the
 energy-dependent weighting strategy, exhibits consistently superior performance
 over tabGAP.
 Given the wide energy span of the original GAP dataset, we separately analyze
-(1) configurations with a broad energy range (with average energies up to
-5~eV/atom above that of the $\beta$ phase) and
-(2) relatively stable configurations (with average energies up to 
-0.5~eV/atom above that of the $\beta$ phase).
+(1) configurations spanning a broad energy range up to 5~eV/atom above the $\beta$ phase 
+(91.5\% of the dataset) and (2) relatively stable configurations within 
+0.5~eV/atom above the $\beta$ phase (45.3\% of the dataset).
 
 For the configurations with a broad energy range, NEP offers pronounced accuracy
 improvements in predicting energies
@@ -395,8 +400,8 @@ reaches 130.2~meV/atom, which is 3.5 times higher than that of NEP
 (37.2~meV/atom), indicating a potential instability of tabGAP over the wide
 energy range.
 The MAE of force prediction by NEP is 303.9~\meVA, approximately three quarters
-of that of tabGAP (391.4~\meVA), while the MAE of virial prediction is
-71.6~meV for NEP and 170.2~meV for tabGAP.
+of that of tabGAP (392.7~\meVA), while the MAE of virial prediction is
+69.3~meV for NEP and 172.3~meV for tabGAP.
 The overall MAEs of both models remain relatively large mainly because the dataset
 covers an extremely broad energy range.
 For the relatively stable configurations, both models show significant improvements in
@@ -410,6 +415,27 @@ predictions are less pronounced.
 The MAE of energy prediction by NEP is 6.4~meV/atom, about half of that of
 tabGAP (11.8~meV/atom), and NEP still maintains noticeable advantages in force
 and virial predictions.
+
+\begin{table}[htbp]
+\caption{\label{tab_accuracy_comparison}
+Prediction accuracy comparison between tabGAP and NEP for configurations with 
+broader (up to 5~eV/atom above $\beta$ phase) and shallower (up to 0.5~eV/atom 
+above $\beta$ phase) energy ranges. Energy values are in meV/atom, force values 
+are in meV/\AA, and virial values are in meV/atom.
+}
+\begin{ruledtabular}
+\begin{tabular}{lccccccc}
+ & \multicolumn{2}{c}{Energy} & \multicolumn{2}{c}{Force} & \multicolumn{2}{c}{Virial} \\
+ \cline{2-3} \cline{4-5} \cline{6-7}
+Model & MAE & RMSE & MAE & RMSE & MAE & RMSE \\
+\hline
+tabGAP (Broader) & 48.3 & 130.2 & 392.7 & 1023.0 & 172.3 & 621.6 \\
+NEP (Broader) & 16.4 & 37.2 & 303.8 & 845.2 & 69.3 & 191.5 \\
+tabGAP (Shallower) & 11.8 & 22.7 & 392.5 & 1029.1 & 168.9 & 654.7 \\
+NEP (Shallower) & 6.4 & 10.4 & 302.5 & 842.5 & 69.4 & 197.5 \\
+\end{tabular}
+\end{ruledtabular}
+\end{table}
 
 \begin{figure}[htbp]
 \centering
@@ -604,8 +630,9 @@ of MLIPs.
 To systematically assess the performance of NEP and tabGAP in describing the
 heating--cooling behavior of the $\beta$ phase, we sampled 600 configurations from six
 independent MD simulations.
-These simulations were carried out using a NEP model trained on the original GAP dataset
-to perform heating--cooling cycles on a $\beta$-phase supercell containing 160 atoms.
+These simulations employed a NEP model trained on the original GAP dataset to perform 
+heating--cooling cycles on a 160-atom $\beta$-phase supercell, with temperatures varying 
+between 800~K and 4000~K. 
 Six distinct simulation conditions were considered:
 
 \noindent
@@ -614,7 +641,7 @@ Six distinct simulation conditions were considered:
 (3) Config \textit{10GPa}: NPT at 10~GPa; \newline
 (4) Config \textit{v1}: NVT at the original cell volume; \newline
 (5) Config \textit{v0.9}: NVT with the volume rescaled to 0.9; \newline
-(6) Config \textit{v1.1}: NVT with the volume rescaled to 1.1.
+(6) Config \textit{v1.1}: NVT with the volume rescaled to 1.1. 
 
 The energy predictions obtained using tabGAP and the NEP model trained on the GAP dataset
 are compared with the corresponding DFT reference data in
@@ -701,7 +728,7 @@ with various electronic energy losses.
 A representative ion track formed in $\beta$-\ga\ and the corresponding structural
 analysis are shown in Fig.~\ref{fig_ion_track}.
 The ion track is generated by MD simulations driven by the energy deposition of a
-70~MeV $^{181}$Ta ion, with a total simulation time of 200~ps.
+70~MeV $^{181}$Ta ion ($S_e = 26.05$~keV/nm in TREKIS), with a total simulation time of 200~ps.
 Based on the transverse cross-sectional view
 [Fig.~\ref{fig_ion_track}(a)], the atomic configuration is manually divided into four
 concentric regions from the center to the periphery:
@@ -712,7 +739,22 @@ and the pristine $\beta$ phase (region~\text{IV}).
 Figure~\ref{fig_ion_track}(c) presents the radial distribution functions (RDFs) for each
 region, while Fig.~\ref{fig_ion_track}(d) shows the distributions of atomic displacements
 with respect to the ideal $\beta$-phase lattice sites; together, these analyses are used
-to assist structural identification.
+to assist structural identification. 
+More conventional crystalline-structure analysis methods are not adopted here because
+the atomic structure of the $\gamma$ phase remains highly disordered and is not uniquely
+defined \cite{ratcliff_tackling_2022}.
+Although the $\gamma$-\ga\ phase is commonly associated with a defect-spinel structure,
+it can be more naturally interpreted as a disordered form of $\beta$-\ga\ \cite{huang_nature_2024}.
+Importantly, during the $\beta \to \gamma$ transition, the oxygen sublattice remains
+largely preserved. 
+This allows the oxygen lattice of $\beta$-\ga\ to be used as a common reference framework
+for structural analysis.
+From this perspective, gallium atoms are expected to occupy the four- and six-coordinated
+sites of the oxygen sublattice in both the $\beta$ and $\gamma$ phases, while the relative
+population of these coordination environments differs between the two phases.
+Therefore, the combined use of RDFs and atomic-displacement distributions provides a
+robust and physically meaningful approach for identifying the structural characteristics
+within the ion track.
 
 The amorphous core manifests as a high-contrast region in transmission electron microscopy (TEM) experiments,
 with a diameter of approximately 4.5~nm, consistent with the TEM measurements reported in 
@@ -953,6 +995,25 @@ Several additional parameters were incorporated into the TREKIS calculations:
 the speed of sound was set to $5,250~\mathrm{m/s}$ \cite{wright_acoustic_2025}, the density 
 of \ga\ to $5.88~\mathrm{g/cm}^3$, and the band gap to 
 $4.9~\mathrm{eV}$ \cite{zhang_tight-binding_2022}.
+
+\section{Technical details for MD simulations}
+\label{app:md}
+All MD simulations of SHI irradiation on $\beta$-\ga\ were performed using GPUMD. 
+The simulations were initialized with a $\beta$-\ga\ lattice configuration oriented with the 
+[010] crystallographic direction ($y$-axis) aligned along the ion penetration direction. 
+Each simulation ran for a total of 200~ps in the NVE ensemble, with boundary temperature 
+controlled using Nose-Hoover chain thermostats with coupling parameters calibrated to 1,000. 
+The time step was dynamically adjusted to mitigate instabilities arising from extreme 
+temperature gradients: 0.25~fs for the initial 10~ps, 0.5~fs for the subsequent 90~ps, 
+and 1~fs for the final 100~ps. 
+To minimize boundary effects, the simulation cell was constructed with dimensions of 
+38.8 $\times$ 10.5 $\times$ 39.5~nm, containing 1,457,920 atoms in total. 
+The boundary coupling parameters were further refined by matching the temperature profiles 
+to those obtained from a significantly larger ``pancake'' model with transverse dimensions 
+exceeding 100~nm [Fig.~S1]. 
+To verify the sufficiency of the cell thickness, we also tested a model with dimensions of 
+38.8 $\times$ 21.0 $\times$ 39.5~nm and found no significant difference in the final 
+results between the standard and doubled-thickness models. 
 
 % The \nocite command causes all entries in a bibliography to be printed out
 % whether or not they are actually referenced in the text. This is appropriate
