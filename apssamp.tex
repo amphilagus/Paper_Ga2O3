@@ -349,8 +349,7 @@ developed to model the electronic kinetics following SHI impact on matter
 velocities of the \ga\ lattice for subsequent MD simulations, with a conversion factor of 
 0.45 applied to reproduce the experimentally observed track dimensions.
 (3) The MD simulations are carried out in the NVE ensemble, while the boundary temperature
-is controlled using Nose-Hoover chain thermostats, with the coupling parameters calibrated 
-to 1,000 as shown in Fig.~S1.
+is controlled using Nose-Hoover chain thermostats, with the coupling parameter tuned to 1,000. 
 Further methodological details regarding TREKIS are provided in Appendix~\ref{app:trekis}, 
 and technical details for MD simulations are provided in Appendix~\ref{app:md}.
 
@@ -591,7 +590,7 @@ The first notable observation is that tabGAP systematically overpredicts the ene
 the $\gamma$ phase by nearly 20~meV/atom relative to the DFT results, indicating limited
 extrapolation capability for zero-shot configurations that deviate from its training set.
 NEP shows improved zero-shot performance for $\gamma$-phase configurations
-[Fig.~S2], although it still overestimates their energies.
+[Fig.~S1], although it still overestimates their energies.
 The NEP model trained with the augmented dataset performs best, achieving an energy MAE
 about 3~meV/atom for the $\gamma$ phase.
 In addition, both NEP and tabGAP accurately reproduce the energy--volume curves of the
@@ -756,16 +755,16 @@ Therefore, the combined use of RDFs and atomic-displacement distributions provid
 robust and physically meaningful approach for identifying the structural characteristics
 within the ion track.
 
-The amorphous core manifests as a high-contrast region in transmission electron microscopy (TEM) experiments,
-with a diameter of approximately 4.5~nm, consistent with the TEM measurements reported in 
+Both amorphous core and $\gamma$-phase shell manifests high-contrast regions in 
+transmission electron microscopy (TEM) experiments,
+with a diameter of approximately 5.9~nm, consistent with the TEM measurements reported in 
 Ref.~\cite{xu_thermal_2025}.
 In the core region, the RDFs are characterized by a solitary nearest-neighbor peak, 
 with the absence of long-range structural features confirming the transition to a disordered state.
 The atomic-displacement distributions further reveal that oxygen atoms completely leave
 their original fcc sites, and most gallium atoms are also displaced away from the vicinity of
 their original four- and six-coordinated sites.
-
-Outside the amorphous core, a clear $\gamma$-phase structure is observed.
+Outside the amorphous core, a clear $\gamma$-phase shell is observed.
 In this region, gallium atoms are randomly distributed among four- and six-coordinated
 sites, while oxygen atoms predominantly occupy their pristine fcc positions.
 The RDF analysis shows the absence of the second gallium--gallium peak, whereas the characteristic
@@ -776,12 +775,6 @@ but with a coordination ratio of approximately 1:1.55, differing from the pristi
 $\beta$-phase ratio of 1:1.
 This ratio is more consistent with the experimentally reported value of 1:1.35 for the
 $\gamma$-phase structure~\cite{playford_structures_2013}.
-From the longitudinal cross-sectional view
-[Fig.~\ref{fig_ion_track}(b)], the boundary between the amorphous core and the $\gamma$
-phase is irregular yet clearly discernible.
-Along the ion-penetration direction, the relative extent of the $\gamma$ phase and the
-amorphous core exhibits noticeable fluctuations, which is consistent with TEM observations
-reported in Ref.~\cite{abdullaev_ions_2025}.
 
 Beyond the $\gamma$-phase region, a deformed $\beta$-phase structure is identified.
 Although the deformation is not readily apparent in the transverse view
@@ -822,8 +815,8 @@ Abdullaev \textit{et al.}
 This situation motivates a systematic investigation of SHI irradiation over a wide
 range of $S_e$.
 To this end, we performed a series of SHI irradiation simulations with $S_e$ ranging 
-from 15.68 to 36.24~keV/nm.
-Five representative cases are shown in Fig.~\ref{fig_tracks}.
+from 11.29 to 42.92~keV/nm and 
+five representative cases are shown in Fig.~\ref{fig_tracks}.
 
 When $S_e = 15.68$~keV/nm, no ion track is formed, consistent with the experimental
 threshold of approximately 17~keV/nm reported by Xu \textit{et al.}~\cite{xu_thermal_2025}.
@@ -833,52 +826,49 @@ Only a small number of gallium interstitials are generated, most of which occupy
 four- or six-coordinated sites within the FCC oxygen framework.
 Such defect configurations can be regarded as incipient signatures of $\gamma$-phase
 formation.
-When $S_e$ increases to 19.18~keV/nm, slightly above the experimental threshold,
-a limited number of oxygen defects emerge, leading to the formation of discontinuous
-small amorphous clusters along the ion penetration direction.
-Most regions along the ion trajectory remain in the $\beta$ phase, while several
-$\gamma$-phase clusters are observed near the track center.
-Given the similarity between the diffraction patterns of the $\beta$ and $\gamma$
-phases, such a low fraction of $\gamma$ phase is expected to be difficult to
-distinguish experimentally from the $\beta$ matrix.
+When $S_e$ increases to 19.18~keV/nm, slightly above the experimental threshold, 
+continuous $\gamma$-phase regions are observed in the both transverse and longitudinal cross-sectional views, 
+with limited number of oxygen defects emerging.
+The simulated diffraction patterns for this case [Fig.~S2] reproduce the key features 
+observed experimentally~\cite{abdullaev_ions_2025}, confirming the formation of $\gamma$-phase 
+ion tracks at $S_e$ slightly above the threshold. 
 
-At $S_e = 21.15$~keV/nm, corresponding to the energy-loss regime where the most
+At $S_e = 22.16$~keV/nm, corresponding to the energy-loss regime where the most
 controversial experimental interpretations have been reported, a clear core--shell
 track structure emerges.
 The shell consists predominantly of a well-defined $\gamma$ phase, while the core
 forms a highly disordered region.
-Notably, although this core region would exhibit strong contrast in TEM images and has
-a diameter of approximately 3.3~nm, it is not fully amorphous.
+Notably, although this core region is highly disordered, it is not fully amorphous.
 A substantial fraction of oxygen atoms remain distributed around their pristine
 FCC sites, albeit with large displacements.
 This quasi-FCC oxygen framework partially constrains the displacement of gallium atoms.
 Along the ion penetration direction, the thicknesses of the core and shell
 fluctuate heavily, and in some segments the disordered core even disappears, resulting in
 a track composed entirely of the $\gamma$ phase.
-These observations suggest that the highly disordered core should be interpreted
+These observations suggest that this highly disordered core should be interpreted
 as a precursor state of the $\gamma$ phase, which may transform into a standard 
 $\gamma$ structure under mild post-irradiation conditions, such as
 long-term defect relaxation at ambient conditions or TEM-induced structural recovery.
 
-When $S_e$ further increases to 26.05~keV/nm, the track diameter grows rapidly and
-the core reaches approximately 4.5~nm in diameter.
+When $S_e$ further increases to 26.05~keV/nm, the track size increases rapidly to 
+approximately 6~nm in diameter.
 In this regime, the track core becomes fully amorphous, exhibiting no recognizable
 structural motifs.
-Compared with the case at $S_e = 21.15$~keV/nm, fluctuations along the ion penetration
+Compared with the case at $S_e = 22.16$~keV/nm, fluctuations along the ion penetration
 direction are strongly suppressed, indicating the formation of a continuous amorphous
 core and a stable core--shell structure.
-At $S_e = 36.24$~keV/nm, the track size increases further, with the core diameter
-reaching approximately 7.0~nm, while the core--shell morphology remains evident.
+At $S_e = 36.24$~keV/nm, the track size increases further, with the track diameter
+reaching approximately 8~nm, while the core--shell morphology remains evident.
 Interestingly, the thickness of the surrounding $\gamma$-phase shell does not
 increase with increasing track size and saturates at about 1~nm.
 
-To validate our simulations, we compared the predicted track diameters with
+To validate our simulation results, we compared the predicted track diameters with
 experimental measurements reported in Refs.~\cite{xu_thermal_2025,ai_radiation_2019},
 as shown in Fig.~\ref{fig_track_diameter_comparison}.
 The figure includes simulation results for ten different values of $S_e$, with each
 case repeated three times to reduce statistical fluctuations in the MD simulations. 
-The excellent agreement between simulation and experiment demonstrates the
-reliability of our NEP model.
+The excellent agreement between simulation and experiment across a wide range of $S_e$ 
+demonstrates the reliability of our NEP model.
 Besides, the total computational throughput for these results exceeds
 $1.4\times10^{13}$ atom-steps.
 Achieving the same throughput with tabGAP would require more than 83 days on eight
@@ -1002,15 +992,12 @@ All MD simulations of SHI irradiation on $\beta$-\ga\ were performed using GPUMD
 The simulations were initialized with a $\beta$-\ga\ lattice configuration oriented with the 
 [010] crystallographic direction ($y$-axis) aligned along the ion penetration direction. 
 Each simulation ran for a total of 200~ps in the NVE ensemble, with boundary temperature 
-controlled using Nose-Hoover chain thermostats with coupling parameters calibrated to 1,000. 
+controlled using Nose-Hoover chain thermostats with coupling parameters tuned to 1,000. 
 The time step was dynamically adjusted to mitigate instabilities arising from extreme 
 temperature gradients: 0.25~fs for the initial 10~ps, 0.5~fs for the subsequent 90~ps, 
 and 1~fs for the final 100~ps. 
 To minimize boundary effects, the simulation cell was constructed with dimensions of 
 38.8 $\times$ 10.5 $\times$ 39.5~nm, containing 1,457,920 atoms in total. 
-The boundary coupling parameters were further refined by matching the temperature profiles 
-to those obtained from a significantly larger ``pancake'' model with transverse dimensions 
-exceeding 100~nm [Fig.~S1]. 
 To verify the sufficiency of the cell thickness, we also tested a model with dimensions of 
 38.8 $\times$ 21.0 $\times$ 39.5~nm and found no significant difference in the final 
 results between the standard and doubled-thickness models. 
