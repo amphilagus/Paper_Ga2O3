@@ -59,12 +59,33 @@ Accurate and Efficient Modeling of Polymorphism and Swift Heavy-Ion Irradiation'
 
 \begin{figure}[ht]
 \centering
+\includegraphics[width=0.8\linewidth]{comparison_dual_2x3_t100_t01.png}
+\caption{Detailed comparison of the prediction accuracy of the NEP and tabGAP models.
+Blue and red dots represent NEP and tabGAP results, respectively.
+Panels (a), (c), and (e) show the predicted energies, forces,
+and virials of the entire GAP-dataset configurations.
+Panels (b), (d), and (f) present the corresponding results
+for a much narrower energy window from $-5.9$ to $-5.8$~eV/atom.}
+\label{fig:S1}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
 \includegraphics[width=0.8\linewidth]{S1.png}
 \caption{Energy-volume curves for the $\alpha$, $\beta$ and $\gamma$ phases 
 predicted by zero-shot NEP (solid circles), NEP with augmented training set (solid triangles), 
 and tabGAP (solid squares), compared with DFT reference 
 data (open circles). Different phases are color-coded as indicated.}
-\label{fig:S1}
+\label{fig:S2}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.8\linewidth]{ltc_direction_comparison.png}
+\caption{Comparison of lattice thermal conductivity (LTC) predicted by the NEP and tabGAP models against experimental data.
+The tabGAP predictions are obtained using the equilibrium molecular dynamics (EMD) method\cite{kuboStatisticalmechanicalTheoryIrreversible1957},
+while the NEP predictions employ the more computationally efficient homogeneous nonequilibrium molecular dynamics (HNEMD) method\cite{fanHomogeneousNonequilibriumMolecular2019}.}
+\label{fig:S3}
 \end{figure}
 
 \begin{figure}[ht]
@@ -74,25 +95,43 @@ data (open circles). Different phases are color-coded as indicated.}
 atomic structure with $S_e = 19.18$~keV/nm, the vertical direction is along [201] direction. 
 (b) Simulated diffraction pattern for the pristine $\beta$ phase.
 (c) Simulated diffraction pattern for the $\gamma$ phase.}
-\label{fig:S2}
+\label{fig:S4}
 \end{figure}
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=0.7\linewidth]{figureS3_transverse_part1.png}
-\caption{Transverse cross-sectional views of ion tracks in $\beta$-Ga$_2$O$_3$ 
-for electronic energy losses ranging from $S_e = 11.29$~keV/nm to 
-$S_e = 26.05$~keV/nm. The measured track diameters are indicated for each case.}
-\label{fig:S3}
+\includegraphics[width=\linewidth]{rdf_comparison.png}
+\caption{Radial distribution functions (RDFs) of the ion track 
+at $S_e = 22.16$~keV/nm before and after the annealing simulation at 800~K for 2~ns.}
+\label{fig:S5}
 \end{figure}
 
 \begin{figure}[ht]
-    \centering
-    \includegraphics[width=0.7\linewidth]{figureS3_transverse_part2.png}
-    \caption{Transverse cross-sectional views of ion tracks in $\beta$-Ga$_2$O$_3$ 
-    for electronic energy losses ranging from $S_e = 30.08$~keV/nm to 
-    $S_e = 42.92$~keV/nm. The measured track diameters are indicated for each case.}
-    \label{fig:S4}
+\centering
+\includegraphics[width=0.75\linewidth]{figureS3_transverse_part1.png}
+\caption{Transverse cross-sectional views of ion tracks in $\beta$-Ga$_2$O$_3$ 
+for electronic energy losses ranging from $S_e = 11.29$~keV/nm to 
+$S_e = 26.05$~keV/nm. The measured track diameters are indicated for each case.}
+\label{fig:S6}
 \end{figure}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.75\linewidth]{figureS3_transverse_part2.png}
+\caption{Transverse cross-sectional views of ion tracks in $\beta$-Ga$_2$O$_3$ 
+for electronic energy losses ranging from $S_e = 30.08$~keV/nm to 
+$S_e = 42.92$~keV/nm. The measured track diameters are indicated for each case.}
+\label{fig:S7}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.8\linewidth]{trekis_radial_energy.png}
+\caption{Radial energy deposition profiles calculated by TREKIS for ions of different species and energies.}
+\label{fig:S8}
+\end{figure}
+
+\clearpage
+\bibliography{sm}
 
 \end{document}

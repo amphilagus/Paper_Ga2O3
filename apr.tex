@@ -295,9 +295,12 @@ $e_{\beta\text{-phase}}$ denotes that of the $\beta$ phase,
 and $\alpha$ and $\epsilon$ are small constants controlling the strength of the scaling.
 
 The average energy, atomic forces, and virial of each training configuration are used as training targets, 
-with global weights of $\lambda_e=\lambda_f=\lambda_v=1$, following Ref.~\onlinecite{liang_nep89_2025}. 
+with global weights of $\lambda_e=\lambda_f=\lambda_v=1$. 
 Both $\mathcal{L}_1$ and $\mathcal{L}_2$ regularizations are applied with $\lambda_1=\lambda_2=0.05$ to 
 avoid overfitting.\cite{fan_gpumd_2022} 
+In practice, we also shift the energy baseline of the training configurations to align with the 
+isolated-atom energy predicted by NEP89\cite{liang_nep89_2025}, as we find that NEP performs much 
+better under this shifted baseline. 
 
 \subsection{Datasets}
 
@@ -392,22 +395,25 @@ Moreover, the root mean square error (RMSE) of energy predicted by tabGAP
 reaches 130.2~meV/atom, which is 3.5 times higher than that of NEP
 (37.2~meV/atom), indicating a potential instability of tabGAP over the wide
 energy range.
-The MAE of force prediction by NEP is 303.9~\meVA, approximately three quarters
-of that of tabGAP (392.7~\meVA), while the MAE of virial prediction is
-69.3~meV/atom for NEP and 172.3~meV/atom for tabGAP.
+The MAE of force prediction by NEP is 237.3~\meVA, approximately 70\% 
+of that of tabGAP (339.2~\meVA), while the MAE of virial prediction is
+57.1~meV/atom for NEP and 136.8~meV/atom for tabGAP.
 The overall MAEs of both models remain relatively large mainly because the dataset
 covers an extremely broad energy range.
 For the relatively stable configurations, both models show significant improvements in
-energy prediction
+energy 
 [Fig.~\ref{fig_comparison_dual_2x3}(b)],
-whereas the improvements in force
+force
 [Fig.~\ref{fig_comparison_dual_2x3}(d)]
 and virial
 [Fig.~\ref{fig_comparison_dual_2x3}(f)]
-predictions are less pronounced.
+predictions.
 The MAE of energy prediction by NEP is 6.4~meV/atom, about half of that of
 tabGAP (11.8~meV/atom), and NEP still maintains noticeable advantages in force
 and virial predictions.
+Additional prediction accuracy comparisons over the entire GAP dataset and 
+25.6\% of the GAP dataset (up to 0.1~eV/atom above the $\beta$ phase) are provided in Fig.~S1, 
+confirming that the superiority of NEP in prediction accuracy is maintained consistently.
 
 \begin{table}[htbp]
 \caption{\label{tab_accuracy_comparison}
@@ -434,33 +440,34 @@ NEP (Narrower) & 6.4 & 10.4 & 302.5 & 842.5 & 69.4 & 197.5 \\
 \centering
 \includegraphics[width=0.7\columnwidth]{throughput_comparison.png}
 \caption{\label{fig_throughput_comparison}
-Comparison of the computational throughput between NEP and tabGAP for systems of 
-different sizes. The throughput of NEP is measured on a single NVIDIA H100 GPU, 
-while that of tabGAP is measured on eight CPU nodes, each equipped with  
-two 24-core Intel Xeon Gold 6240R processors.
+Computational throughput benchmark for NEP and tabGAP across different system sizes.
+NEP is tested on a single NVIDIA H100 GPU and a single NVIDIA GeForce RTX~4090 GPU,
+while tabGAP is tested on eight CPU nodes, each equipped with two 24-core Intel Xeon
+Gold 6240R processors.
 }
 \end{figure}
 
-Beyond its superior prediction accuracy, NEP also demonstrates significantly higher
-computational throughput than tabGAP, breaking the accuracy--efficiency 
-trade-off common in modern MLIP architectures.
-As shown in Fig.~\ref{fig_throughput_comparison}, we benchmarked the computational throughput
-of NEP and tabGAP for systems containing between $10^4$ and $10^7$ atoms, and found that NEP
-consistently achieves significantly higher throughput across all system sizes.
-For the relatively small system size of $10^4$ atoms, NEP reaches a throughput of
-approximately $5\times10^6$ atom-steps per second, which is about four times higher than that
-of tabGAP ($1.4\times10^6$ atom-steps per second).
-As the system size increases beyond $10^5$ atoms, the throughput of NEP rapidly converges to
-around $1.25\times10^7$ atom-steps per second, whereas the throughput of tabGAP encounters a
-clear bottleneck at approximately $2\times10^6$ atom-steps per second under our test
-conditions.
-It is worth noting that the two potentials are benchmarked on different hardware platforms:
-NEP is evaluated on a single NVIDIA H100 GPU, while tabGAP is tested on eight CPU nodes, each
-equipped with two 24-core Intel Xeon Gold 6240R processors.
-Nevertheless, we believe that this comparison remains meaningful, as both hardware platforms
-have been independently benchmarked by our group and exhibit comparable peak double-precision
-floating-point performance, with the H100 GPU reaching 18.27~TFLOPS and the eight CPU nodes
-achieving 18.92~TFLOPS.
+Beyond its prediction accuracy, NEP also exhibits remarkably high computational throughput.
+To characterize its performance, we benchmarked the throughput of NEP on two representative
+GPU platforms---a single NVIDIA H100 (a current-generation data-center GPU) and a single
+NVIDIA GeForce RTX~4090 (a high-end consumer-grade GPU)---alongside tabGAP running in LAMMPS
+on a cluster of eight CPU nodes, each equipped with two 24-core Intel Xeon Gold 6240R
+processors (released in 2020), for systems containing between $10^4$ and $10^7$ atoms
+[Fig.~\ref{fig_throughput_comparison}].
+On the H100, NEP reaches approximately $5.0\times10^6$ atom-steps per second at $10^4$ atoms
+and approaches a stable throughput of around $1.25\times10^7$ atom-steps per second for
+systems larger than $10^5$ atoms.
+The RTX~4090 delivers slightly lower but comparable performance, reaching approximately
+$1.04\times10^7$ atom-steps per second at $10^5$ atoms and $1.25\times10^7$ at $2.5\times10^6$ atoms,
+although its 24~GB memory becomes a limiting factor for systems on the order of $10^7$ atoms.
+In comparison, the tabGAP throughput on the eight-node CPU cluster plateaus at approximately
+$2\times10^6$ atom-steps per second for large systems.
+We acknowledge that newer-generation CPUs would yield higher throughput, and that LAMMPS
+offers a degree of GPU acceleration for certain potential styles.
+Nonetheless, the fact that even a single consumer-grade GPU can sustain a throughput
+exceeding $10^7$ atom-steps per second highlights the substantial cost-effectiveness of
+NEP natively deployed within GPUMD---a molecular dynamics package written entirely in CUDA
+and designed for GPU execution from the ground up.
 
 
 \begin{figure*}[htbp]
@@ -528,6 +535,7 @@ of tabGAP, and for crystalline configurations NEP also consistently yields small
 We believe that the overall superior performance of NEP over tabGAP in predicting energies,
 forces, and virials is primarily attributed to our energy-dependent weighting strategy,
 as illustrated in Fig.~\ref{fig_energy_mae_comparison}(a).
+In practice, the weighting factors are chosen as $\alpha = 1.5$ and $\epsilon = 1$~eV/atom.
 The weighting factors remain close to unity for the most stable configurations, decrease
 to 1/2 when the average potential energy increases by 1~eV/atom above that of the
 optimized $\beta$ phase, and then rapidly drop with increasing energy, eventually becoming
@@ -583,7 +591,7 @@ The first notable observation is that tabGAP systematically overpredicts the ene
 the $\gamma$ phase by nearly 20~meV/atom relative to the DFT results, indicating limited
 extrapolation capability for zero-shot configurations that deviate from its training set.
 NEP shows improved zero-shot performance for $\gamma$-phase configurations
-[Fig.~S1], although it still overestimates their energies.
+[Fig.~S2], although it still overestimates their energies.
 The NEP model trained with the augmented dataset performs best, achieving an energy MAE
 about 3~meV/atom for the $\gamma$ phase.
 In addition, both NEP and tabGAP accurately reproduce the energy--volume curves of the
@@ -663,6 +671,12 @@ models trained on the original GAP dataset.
 Although the softening problem is not completely eliminated, this is a reasonable compromise 
 by the energy-dependent weighting strategy, as the primary objective of our NEP training is 
 to accurately describe stable and metastable states under ambient conditions.
+Moreover, this dataset augmentation yields an unexpected benefit: 
+an improved description of the anisotropic lattice thermal conductivity (LTC) of \ga. 
+As shown in Fig.~S3, the LTC predicted by the augmented NEP potential correctly reproduces the 
+pronounced preference for the [010] direction over the other two crystallographic directions, 
+although the absolute LTC values remain systematically lower than experimental measurements, 
+as the NEP was not specifically trained to target LTC.
 Figure~\ref{fig_melting_pca}(d) presents the PCA projection of the training configurations
 from the heating--cooling processes together with related configurations of the GAP
 dataset.
@@ -680,8 +694,8 @@ SHI-irradiated $\beta$-\ga\ atomic structure.
 Four distinct regions are identified in the transverse view (from center to periphery): 
 amorphous core (region $\text{I}$), $\gamma$ phase (region $\text{II}$), 
 deformed $\beta$ phase (region $\text{III}$), and pristine $\beta$ phase (region $\text{IV}$).
-(c) Radial distribution functions for each region.
-(d) Atomic-displacement distributions relative to the ideal $\beta$-phase 
+(c-e) Radial distribution functions for each region.
+(f-q) Atomic-displacement distributions relative to the ideal $\beta$-phase 
 lattice sites for each region.
 }
 \end{figure*}
@@ -727,8 +741,8 @@ the amorphous core (region~\text{I}),
 the $\gamma$ phase (region~\text{II}),
 a deformed $\beta$ phase (region~\text{III}),
 and the pristine $\beta$ phase (region~\text{IV}).
-Figure~\ref{fig_ion_track}(c) presents the radial distribution functions (RDFs) for each
-region, while Fig.~\ref{fig_ion_track}(d) shows the distributions of atomic displacements
+Figure~\ref{fig_ion_track}(c-e) presents the radial distribution functions (RDFs) for each
+region, while Fig.~\ref{fig_ion_track}(f-q) shows the distributions of atomic displacements
 with respect to the ideal $\beta$-phase lattice sites; together, these analyses are used
 to assist structural identification. 
 More conventional crystalline-structure analysis methods are not adopted here because
@@ -747,21 +761,22 @@ Therefore, the combined use of RDFs and atomic-displacement distributions provid
 robust and physically meaningful approach for identifying the structural characteristics
 within the ion track.
 
-Both amorphous core and $\gamma$-phase shell manifests high-contrast regions in 
-transmission electron microscopy (TEM) experiments,
-with a diameter of approximately 5.9~nm, consistent with the TEM measurements reported in 
-Ref.~\onlinecite{xu_thermal_2025}.
+According to the findings of Ref.~\onlinecite{abdullaev_ions_2025}, the $\gamma$ phase,
+like the amorphous phase, also appears as a high-contrast region in transmission electron
+microscopy (TEM) imaging. Including the $\gamma$-phase shell in the track size estimation,
+the ion track shown in Fig.~\ref{fig_ion_track} has a diameter of approximately 5.9~nm,
+consistent with the TEM measurements reported in Ref.~\onlinecite{xu_thermal_2025}.
 In the core region, the RDFs are characterized by a solitary nearest-neighbor peak, 
 with the absence of long-range structural features confirming the transition to a disordered state.
 The atomic-displacement distributions further reveal that oxygen atoms completely leave
-their original fcc sites, and most gallium atoms are also displaced away from the vicinity of
-their original four- and six-coordinated sites.
+their original fcc sites (Fig.~\ref{fig_ion_track}(f)), and most gallium atoms are also displaced away from the vicinity of
+their original four- and six-coordinated sites (Fig.~\ref{fig_ion_track}(g-h)).
 Outside the amorphous core, a clear $\gamma$-phase shell is observed.
 In this region, gallium atoms are randomly distributed among four- and six-coordinated
 sites, while oxygen atoms predominantly occupy their pristine fcc positions.
 The RDF analysis shows the absence of the second gallium--gallium peak, whereas the characteristic
 fcc oxygen peak gradually recovers.
-As shown in Fig.~\ref{fig_ion_track}(d), most oxygen atoms in this region return to their
+As shown in Fig.~\ref{fig_ion_track}(i-k), most oxygen atoms in this region return to their
 original fcc sites, and most gallium atoms also reoccupy four- and six-coordinated sites,
 but with a coordination ratio of approximately 1:1.55, differing from the pristine
 $\beta$-phase ratio of 1:1.
@@ -772,7 +787,7 @@ Beyond the $\gamma$-phase region, a deformed $\beta$-phase structure is identifi
 Although the deformation is not readily apparent in the transverse view
 [Fig.~\ref{fig_ion_track}(a)], it becomes evident from the RDFs and the atomic-displacement
 distributions.
-Specifically, Fig.~\ref{fig_ion_track}(d) shows an overall shift of both oxygen and gallium
+Specifically, Fig.~\ref{fig_ion_track}(l-n) shows an overall shift of both oxygen and gallium
 displacement distributions in region~\text{III} relative to the pristine $\beta$-phase
 lattice sites (region~\text{IV}), while the widths of these distributions remain comparable.
 This indicates that region~\text{III} retains the $\beta$-phase structure but experiences 
@@ -821,7 +836,7 @@ formation.
 When $S_e$ increases to 19.18~keV/nm, slightly above the experimental threshold, 
 continuous $\gamma$-phase regions are observed in the both transverse and longitudinal cross-sectional views, 
 with limited number of oxygen defects emerging.
-The simulated diffraction patterns for this case [Fig.~S2] reproduce the key features 
+The simulated diffraction patterns for this case [Fig.~S4] reproduce the key features 
 observed experimentally,\cite{abdullaev_ions_2025} confirming the formation of $\gamma$-phase 
 ion tracks at $S_e$ slightly above the threshold. 
 
@@ -841,6 +856,11 @@ These observations suggest that this highly disordered core should be interprete
 as a precursor state of the $\gamma$ phase, which may transform into a standard 
 $\gamma$ structure under mild post-irradiation conditions, such as
 long-term defect relaxation at ambient conditions or TEM-induced structural recovery.
+To illustrate this point, we performed a annealing simulation to accelerate the post-irradiation evolution 
+of the track structure at $S_e = 22.16$~keV/nm, maintaining a temperature of 800~K for 2~ns. 
+Radial distribution functions (RDFs) provide clear evidence for the transition of the core from an amorphous 
+to a $\gamma$-phase state (Fig.~S5), and a movie of this process, produced by OVITO\cite{stukowskiVisualizationAnalysisAtomistic2010}, 
+is available in the Supplemental Material.
 
 When $S_e$ further increases to 26.05~keV/nm, the track size increases rapidly to 
 approximately 6~nm in diameter.
@@ -860,22 +880,32 @@ as shown in Fig.~\ref{fig_track_diameter_comparison}.
 The figure includes simulation results for nine different values of $S_e$, with each
 case repeated three times to reduce statistical fluctuations in the MD simulations. 
 All simulated transverse cross-sectional views, along with the corresponding measured 
-track diameters, are presented in Fig.~S3 and Fig.~S4. 
+track diameters, are presented in Fig.~S6 and Fig.~S7. 
 The simulated track diameter increases rapidly once $S_e$ exceeds a threshold of 
 approximately 17~keV/nm, whereas the growth rate decreases markedly when $S_e$ exceeds 30~keV/nm.
 At even higher $S_e$, the monotonic dependence of the simulated track size on 
-$S_e$ becomes less evident, which we attribute to subtle differences 
-in the electronic cascade kinetics induced by ions of different energies and species.
-The excellent agreement between simulation and experiment across a wide range of $S_e$ 
+$S_e$ becomes less evident, which we attribute to the velocity effect on the radial 
+energy deposition profile.
+As shown in Fig.~S8, although the $S_e$ of 1000~MeV Ta ions (39.26~keV/nm) is slightly 
+higher than that of 200~MeV Ta ions (36.24~keV/nm), the higher velocity of the 
+1000~MeV ions leads to a broader spatial distribution of the deposited energy, resulting 
+in a lower energy density near the track center and consequently a comparable track size.
+Similarly, 1000~MeV Au ions have a notably higher $S_e$ (42.92~keV/nm) than 200~MeV Ta 
+ions, yet their radial energy deposition densities near the track center are nearly 
+identical, which explains why the two cases yield similar track diameters.
+In general, the excellent agreement between simulation and experiment across a wide range of $S_e$ 
 demonstrates the reliability of our NEP model.
-Besides, the total computational throughput for these results exceeds
-$1.2\times10^{13}$ atom-steps.
-Achieving the same throughput with tabGAP would require more than 69 days on eight
-CPU nodes, each equipped with two 24-core Intel Xeon Gold 6240R processors, whereas
-the computational time for NEP is estimated to be less than three days on a GPU 
-cluster with four NVIDIA GeForce RTX~4090 GPUs.
-These results further highlight the suitability of NEP for high-throughput,
-large-scale MD simulations.
+
+In addition to accuracy, the computational cost of such a systematic study is also worth
+noting. The total computational workload for the ion-track simulations presented
+in this work exceeds $1.2\times10^{13}$ atom-steps.
+Based on our benchmarks, a four-GPU RTX~4090 workstation running four independent 
+simulations concurrently can deliver an aggregate throughput of roughly $4\times10^7$ 
+atom-steps per second, enabling this entire workload to be completed in approximately 
+3.5~days on a consumer-grade platform.
+This demonstrates that, with NEP natively deployed within GPUMD, large-scale and 
+high-throughput MD studies become readily feasible even without dedicated 
+high-performance computing resources.
 
 \section{Conclusion}
 
